@@ -36,9 +36,12 @@ def init_detector(config, checkpoint=None, device='cuda:0'):
         if 'CLASSES' in checkpoint['meta']:
             model.CLASSES = checkpoint['meta']['classes']
         else:
+            # warnings.warn('Class names are not saved in the checkpoint\'s '
+            #               'meta data, use COCO classes by default.')
             warnings.warn('Class names are not saved in the checkpoint\'s '
-                          'meta data, use COCO classes by default.')
-            model.CLASSES = get_classes('coco')
+                          'meta data, use man-made setting.')
+            # model.CLASSES = get_classes('coco')
+            model.CLASSES = ('object', )
     model.cfg = config  # save the config in the model for convenience
     model.to(device)
     model.eval()
