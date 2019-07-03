@@ -115,9 +115,5 @@ data/
 work_dirs/
 result.jpg
 fzqh.ttf
-<<<<<<< HEAD
 .DS_Store
-=======
-.DS_Store
-demo/
->>>>>>> ignore demo
+nohup.out
