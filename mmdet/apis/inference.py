@@ -12,7 +12,7 @@ from mmdet.datasets.transforms import ImageTransform
 from mmdet.models import build_detector
 
 
-def init_detector(config, checkpoint=None, device='cuda:0'):
+def init_detector(config, checkpoint=None, device='cuda:0', load_classes=False):
     """Initialize a detector from config file.
 
     Args:
@@ -32,16 +32,16 @@ def init_detector(config, checkpoint=None, device='cuda:0'):
     config.model.pretrained = None
     model = build_detector(config.model, test_cfg=config.test_cfg)
     if checkpoint is not None:
-        checkpoint = load_checkpoint(model, checkpoint)
+        checkpoint = load_checkpoint(model, checkpoint, map_location=device)
         if 'CLASSES' in checkpoint['meta']:
             model.CLASSES = checkpoint['meta']['classes']
-        else:
-            # warnings.warn('Class names are not saved in the checkpoint\'s '
-            #               'meta data, use COCO classes by default.')
+        elif load_classes:
             warnings.warn('Class names are not saved in the checkpoint\'s '
-                          'meta data, use man-made setting.')
-            # model.CLASSES = get_classes('coco')
-            model.CLASSES = ('object', )
+                          'meta data, use COCO classes by default.')
+            # warnings.warn('Class names are not saved in the checkpoint\'s '
+            #               'meta data, use man-made setting.')
+            model.CLASSES = get_classes('coco')
+            # model.CLASSES = ('object', )
     model.cfg = config  # save the config in the model for convenience
     model.to(device)
     model.eval()

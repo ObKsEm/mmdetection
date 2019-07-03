@@ -16,7 +16,7 @@ def save_xml(image_name, entry):
     node_folder.text = 'JPEGImages'
 
     node_filename = SubElement(node_root, 'filename')
-    node_filename.text = 'image_name'
+    node_filename.text = image_name
 
     node_size = SubElement(node_root, 'size')
     node_width = SubElement(node_size, 'width')

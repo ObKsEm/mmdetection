@@ -109,3 +109,10 @@ mmdet/version.py
 data
 .vscode
 .idea
+
+#data and generations
+data/
+work_dirs/
+result.jpg
+fzqh.ttf
+.DS_Store

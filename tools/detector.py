@@ -2,8 +2,18 @@ import argparse
 
 import cv2
 import mmcv
+import numpy as np
+import pycocotools.mask as maskUtils
+import torch
+from PIL import Image, ImageFont, ImageDraw
+from mmcv import color_val, imwrite
+from mmdet.ops import nms
 
 from mmdet.apis import init_detector, inference_detector, show_result
+from mmdet.datasets.shell import ShellDataset
+from mmdet.datasets.sku import SkuDataset
+
+font = ImageFont.truetype('fzqh.ttf', 20)
 
 
 def parse_args():
@@ -30,6 +40,73 @@ def parse_args():
     return args
 
 
+def write_text_to_image(img_OpenCV, label, bbox, text_color):
+    img_PIL = Image.fromarray(cv2.cvtColor(img_OpenCV, cv2.COLOR_BGR2RGB))
+    draw = ImageDraw.Draw(img_PIL)
+    draw.text(bbox, label, font=font, fill=text_color)
+    ret = cv2.cvtColor(np.asarray(img_PIL), cv2.COLOR_RGB2BGR)
+    return ret
+
+
+def show_result_in_Chinese(img, result, class_names, score_thr=0.3, out_file=None, thickness=1, bbox_color='green', text_color='green'):
+    assert isinstance(class_names, (tuple, list))
+    img = mmcv.imread(img)
+    if isinstance(result, tuple):
+        bbox_result, segm_result = result
+    else:
+        bbox_result, segm_result = result, None
+
+    bboxes = np.vstack(bbox_result)
+    # draw segmentation masks
+    if segm_result is not None:
+        segms = mmcv.concat_list(segm_result)
+        inds = np.where(bboxes[:, -1] > score_thr)[0]
+        for i in inds:
+            color_mask = np.random.randint(0, 256, (1, 3), dtype=np.uint8)
+            mask = maskUtils.decode(segms[i]).astype(np.bool)
+            img[mask] = img[mask] * 0.5 + color_mask * 0.5
+    # draw bounding boxes
+    labels = [
+        np.full(bbox.shape[0], i, dtype=np.int32)
+        for i, bbox in enumerate(bbox_result)
+    ]
+    labels = np.concatenate(labels)
+
+    assert bboxes.ndim == 2
+    assert labels.ndim == 1
+    assert bboxes.shape[0] == labels.shape[0]
+    assert bboxes.shape[1] == 4 or bboxes.shape[1] == 5
+    if score_thr > 0:
+        assert bboxes.shape[1] == 5
+        scores = bboxes[:, -1]
+        inds = scores > score_thr
+        bboxes = bboxes[inds, :]
+        labels = labels[inds]
+
+    bbox_color = color_val(bbox_color)
+    text_color = color_val(text_color)
+    test_bboxes = nms(bboxes, 0.5)
+    new_bboxes = [bboxes[i] for i in test_bboxes[1]]
+    new_labels = [labels[i] for i in test_bboxes[1]]
+
+    for bbox, label in zip(new_bboxes, new_labels):
+        bbox_int = bbox.astype(np.int32)
+        left_top = (bbox_int[0], bbox_int[1])
+        right_bottom = (bbox_int[2], bbox_int[3])
+        cv2.rectangle(
+            img, left_top, right_bottom, bbox_color, thickness=thickness)
+        label_text = class_names[
+            label] if class_names is not None else 'cls {}'.format(label)
+        if len(bbox) > 4:
+            label_text += '|{:.02f}'.format(bbox[-1])
+        img = write_text_to_image(img, label_text, (bbox_int[0], bbox_int[1] - 2), text_color)
+
+    # if show:
+    #     imshow(img, win_name, wait_time)
+    if out_file is not None:
+        imwrite(img, out_file)
+
+
 def main():
     args = parse_args()
 
@@ -40,12 +117,15 @@ def main():
     checkpoint_file = args.checkpoint
 
     # build the model from a config file and a checkpoint file
-    model = init_detector(config_file, checkpoint_file)
-
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    model = init_detector(config_file, checkpoint_file, device=device)
+    model.CLASSES = ShellDataset.CLASSES
     # test a single image and show the results
+
     img = cv2.imread(args.image)
     result = inference_detector(model, img)
-    show_result(img, result, model.CLASSES, score_thr=0.5, out_file=args.out)
+    # show_result(img, result, model.CLASSES, score_thr=0.3, out_file=args.out)
+    show_result_in_Chinese(img, result, model.CLASSES, score_thr=0.3, out_file=args.out)
 
     # test a list of images and write the results to image files
     # imgs = ['test1.jpg', 'test2.jpg']

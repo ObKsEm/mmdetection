@@ -3,10 +3,10 @@ import os
 
 model = dict(
     type='FasterRCNN',
-    pretrained='modelzoo://resnet50',
+    pretrained='modelzoo://resnet101',
     backbone=dict(
         type='ResNet',
-        depth=50,
+        depth=101,
         num_stages=4,
         out_indices=(0, 1, 2, 3),
         frozen_stages=1,
@@ -146,10 +146,15 @@ data = dict(
         with_label=False,
         test_mode=True))
 # optimizer
-optimizer = dict(type='SGD', lr=0.01, momentum=0.9, weight_decay=0.0001)
+optimizer = dict(type='SGD', lr=0.02, momentum=0.9, weight_decay=0.0001)
 optimizer_config = dict(grad_clip=dict(max_norm=35, norm_type=2))
 # learning policy
-lr_config = dict(policy='step', step=[3])  # actual epoch = 3 * 3 = 9
+lr_config = dict(
+    policy='step',
+    warmup='linear',
+    warmup_iters=500,
+    warmup_ratio=1.0 / 3,
+    step=[8, 11])
 checkpoint_config = dict(interval=1)
 # yapf:disable
 log_config = dict(
@@ -160,10 +165,10 @@ log_config = dict(
     ])
 # yapf:enable
 # runtime settings
-total_epochs = 4  # actual epoch = 4 * 3 = 12
+total_epochs = 12
 dist_params = dict(backend='nccl')
 log_level = 'INFO'
-work_dir = './work_dirs/faster_rcnn_r50_fpn_1x_vocsku'
+work_dir = './work_dirs/faster_rcnn_r101_fpn_1x_vocsku'
 load_from = None
 resume_from = None
 workflow = [('train', 1)]

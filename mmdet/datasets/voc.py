@@ -3,12 +3,12 @@ from .xml_style import XMLDataset
 
 class VOCDataset(XMLDataset):
 
-    # CLASSES = ('aeroplane', 'bicycle', 'bird', 'boat', 'bottle', 'bus', 'car',
-    #            'cat', 'chair', 'cow', 'diningtable', 'dog', 'horse',
-    #            'motorbike', 'person', 'pottedplant', 'sheep', 'sofa', 'train',
-    #            'tvmonitor')
+    CLASSES = ('aeroplane', 'bicycle', 'bird', 'boat', 'bottle', 'bus', 'car',
+               'cat', 'chair', 'cow', 'diningtable', 'dog', 'horse',
+               'motorbike', 'person', 'pottedplant', 'sheep', 'sofa', 'train',
+               'tvmonitor')
 
-    CLASSES = ('object', )
+    # CLASSES = ('object', )
 
     def __init__(self, **kwargs):
         super(VOCDataset, self).__init__(**kwargs)
@@ -17,6 +17,6 @@ class VOCDataset(XMLDataset):
         elif 'VOC2012' in self.img_prefix:
             self.year = 2012
         elif 'SKU110K' in self.img_prefix:
-            self.year = 110
-        else:
-            raise ValueError('Cannot infer dataset year from img_prefix')
+            self.year = None
+        # else:
+        #     raise ValueError('Cannot infer dataset year from img_prefix')
