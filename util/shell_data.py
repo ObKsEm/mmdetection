@@ -8,7 +8,8 @@ img_source_dir = "/home/lichengzhi/mmdetection/data/VOCdevkit/shell/标注图片
 img_output_dir = "/home/lichengzhi/mmdetection/data/VOCdevkit/shell/JPEGImages"
 xml_source_dir = "/home/lichengzhi/mmdetection/data/VOCdevkit/shell/近景-油品"
 xml_output_dir = "/home/lichengzhi/mmdetection/data/VOCdevkit/shell/Annotations"
-main_dir = '/home/lichengzhi/mmdetection/data/VOCdevkit/shell/ImageSets/Main'
+main_dir = "/data/lichengzhi/mmdetection/data/VOCdevkit/shell/2019.8.1/ImageSets/Main"
+annotations_dir = "/data/lichengzhi/mmdetection/data/VOCdevkit/shell/2019.8.1/Annotations"
 
 
 tags = shell.ShellDataset.CLASSES
@@ -64,7 +65,7 @@ def solve_img():
 
 def generate_main():
 
-    total_xml = os.listdir(xml_output_dir)
+    total_xml = os.listdir(annotations_dir)
     num = len(total_xml)
     filelist = range(num)
     ftrainval = open(os.path.join(main_dir, "trainval.txt"), "w")

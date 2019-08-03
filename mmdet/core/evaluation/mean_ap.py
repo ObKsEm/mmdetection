@@ -129,7 +129,7 @@ def tpfp_imagenet(det_bboxes,
             else:
                 bbox = det_bboxes[i, :4]
                 area = (bbox[2] - bbox[0] + 1) * (bbox[3] - bbox[1] + 1)
-                if area >= min_area and area < max_area:
+                if min_area <= area < max_area:
                     fp[k, i] = 1
     return tp, fp
 
@@ -194,15 +194,29 @@ def tpfp_default(det_bboxes, gt_bboxes, gt_ignore, iou_thr, area_ranges=None):
             else:
                 bbox = det_bboxes[i, :4]
                 area = (bbox[2] - bbox[0] + 1) * (bbox[3] - bbox[1] + 1)
-                if area >= min_area and area < max_area:
+                if min_area <= area < max_area:
                     fp[k, i] = 1
     return tp, fp
 
 
-def get_cls_results(det_results, gt_bboxes, gt_labels, gt_ignore, class_id):
+def remove_empty(coords):
+    rm = []
+    for i in range(0, len(coords)):
+        if coords[i].shape[0] == 0:
+            rm.append(i)
+    return np.delete(coords, rm, axis=0)
+
+
+def get_cls_results(det_results, gt_bboxes, gt_labels, gt_ignore, class_id, score_thr=0.5):
     """Get det results and gt information of a certain class."""
-    cls_dets = [det[class_id]
-                for det in det_results]  # det bboxes of this class
+    cls_dets = [det[class_id] for det in det_results]  # det bboxes of this class
+    for i in range(0, len(cls_dets)):
+        rm = []
+        for j in range(0, len(cls_dets[i])):
+            assert(cls_dets[i][j].shape[0] == 5)
+            if cls_dets[i][j][4] < score_thr:
+                rm.append(j)
+        cls_dets[i] = np.delete(cls_dets[i], rm, axis=0)
     cls_gts = []  # gt bboxes of this class
     cls_gt_ignore = []
     for j in range(len(gt_bboxes)):
@@ -299,6 +313,7 @@ def eval_map(det_results,
             precisions = precisions[0, :]
             num_gts = num_gts.item()
         mode = 'area' if dataset != 'voc07' else '11points'
+        # mode = 'area'
         ap = average_precision(recalls, precisions, mode)
         eval_results.append({
             'num_gts': num_gts,

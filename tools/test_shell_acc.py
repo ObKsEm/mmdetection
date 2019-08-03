@@ -6,6 +6,8 @@ import mmcv
 import numpy as np
 import pycocotools.mask as maskUtils
 import torch
+
+import openpyxl
 from PIL import Image, ImageFont, ImageDraw
 from mmcv import color_val, imwrite
 from mmdet.core.evaluation.bbox_overlaps import bbox_overlaps
@@ -17,8 +19,11 @@ from mmdet.datasets.shell import ShellDataset
 from mmdet.datasets.sku import SkuDataset
 import xml.etree.ElementTree as ET
 
-test_img_path = "/home/lichengzhi/mmdetection/data/test/JPEGImages"
-test_xml_path = "/home/lichengzhi/mmdetection/data/test/Annotations"
+TABLE_HEAD = ["名称", "MID", "MID English description", "MID Chinese description", "样本个数", "识别个数", "准确率"]
+
+test_img_path = "/home/lichengzhi/mmdetection/data/VOCdevkit/shell/2019.8.1/JPEGImages"
+test_xml_path = "/home/lichengzhi/mmdetection/data/VOCdevkit/shell/2019.8.1/Annotations"
+test_path = "/home/lichengzhi/mmdetection/data/VOCdevkit/shell/2019.8.1/ImageSets/Main/test.txt"
 
 
 def parse_args():
@@ -104,6 +109,23 @@ def get_result(result, score_thr=0.5):
     return new_bboxes, new_labels
 
 
+def load_name2mid(name2id):
+    mmap = dict()
+    source_wb = openpyxl.load_workbook(name2id, read_only=True)
+    sheet = source_wb.get_sheet_by_name("Sheet1")
+    for row in sheet.rows:
+        name = str(row[0].value)
+        mid = str(row[1].value)
+        eng = str(row[2].value)
+        chn = str(row[3].value)
+        mmap[name] = {
+            "MID": mid,
+            "ENG": eng,
+            "CHN": chn
+        }
+    return mmap
+
+
 def main():
     args = parse_args()
 
@@ -117,17 +139,28 @@ def main():
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model = init_detector(config_file, checkpoint_file, device=device)
     model.CLASSES = ShellDataset.CLASSES
+    cls2id = dict(zip(model.CLASSES, range(0, len(model.CLASSES))))
     # test a single image and show the results
     acc = 0.0
     tot = 0.0
-    for r, dirs, files in os.walk(test_img_path):
-        for file in files:
-            img = cv2.imread(os.path.join(r, file))
+    gt_cls_num = np.zeros((len(model.CLASSES)))
+    det_cls_num = np.zeros((len(model.CLASSES)))
+    with open(test_path, "r") as f:
+        filenames = f.readlines()
+        for filename in filenames:
+            img_file = filename.strip() + ".jpg"
+            xml_file = filename.strip() + ".xml"
+            img = cv2.imread(os.path.join(test_img_path, img_file))
             if img is not None:
-                xml_path = os.path.join(test_xml_path, file[:-4] + ".xml")
+                xml_path = os.path.join(test_xml_path, xml_file)
                 coords = read_xml(xml_path)
+                if len(coords) is 0:
+                    print("No annotations\n")
+                    continue
                 gt_bboxes = [coord[:4] for coord in coords]
                 gt_labels = [coord[4] for coord in coords]
+                for label in gt_labels:
+                    gt_cls_num[cls2id[label]] += 1
                 tot += len(gt_bboxes)
                 result = inference_detector(model, img)
                 det_bboxes, det_labels = get_result(result, score_thr=0.5)
@@ -135,11 +168,82 @@ def main():
                 ious_max = ious.max(axis=1)
                 ious_argmax = ious.argmax(axis=1)
                 for i in range(0, len(det_bboxes)):
-                    matched_gt = ious_argmax[i]
-                    if model.CLASSES[det_labels[i]] == gt_labels[matched_gt]:
-                        acc += 1
-    print("tot boxes: %d, acc boxes: %d\n" % (tot, acc))
+                    if ious_max[i] > 0.5:
+                        matched_gt = ious_argmax[i]
+                        if model.CLASSES[det_labels[i]] == gt_labels[matched_gt]:
+                            det_cls_num[det_labels[i]] += 1
+                            acc += 1
+
+    print("total gt: %d,  det: %d" % (tot, acc))
     print("accuracy: %f" % (acc / tot))
+    mat = np.zeros((len(model.CLASSES), 4))
+    for i in range(0, len(model.CLASSES)):
+        print("%s: %.0f gt, %.0f det, %.6f acc" %
+              (model.CLASSES[i], gt_cls_num[i], det_cls_num[i], det_cls_num[i] / gt_cls_num[i] if gt_cls_num[i] > 0 else 0))
+        mat[i][0] = i
+        mat[i][1] = gt_cls_num[i]
+        mat[i][2] = det_cls_num[i]
+        mat[i][3] = det_cls_num[i] / gt_cls_num[i] if gt_cls_num[i] > 0 else 0
+    print("----------------------------------------------------")
+    mat = mat[(-mat[:, 1]).argsort()]
+    inds = mat[:, 1] > 100
+    pos = mat[inds]
+    neg = mat[~inds]
+    pos = pos[(-pos[:, 3]).argsort()]
+    neg = neg[(-neg[:, 3]).argsort()]
+    mmap = load_name2mid("Name2MID.xlsx")
+    for i in range(0, len(pos)):
+        item = pos[i]
+        label = int(item[0])
+        gt = int(item[1])
+        det = int(item[2])
+        acc = item[3]
+        print("%s: %.0f gt, %.0f det, %.6f acc" % (model.CLASSES[label], gt, det, acc))
+    print("----------------------------------------------------")
+    for i in range(0, len(neg)):
+        item = neg[i]
+        label = int(item[0])
+        gt = int(item[1])
+        det = int(item[2])
+        acc = item[3]
+        print("%s: %.0f gt, %.0f det, %.6f acc" % (model.CLASSES[label], gt, det, acc))
+
+    workbook = openpyxl.load_workbook("statistics.xlsx")
+    pos_sheet = workbook["positive"]
+    for col in range(0, len(TABLE_HEAD)):
+        pos_sheet.cell(row=1, column=col + 1, value=TABLE_HEAD[col])
+    for row in range(0, len(pos)):
+        item = pos[row]
+        label = model.CLASSES[int(item[0])]
+        gt = int(item[1])
+        det = int(item[2])
+        acc = item[3]
+        pos_sheet.cell(row=row + 2, column=1, value=label)
+        pos_sheet.cell(row=row + 2, column=2, value=mmap[label]["MID"])
+        pos_sheet.cell(row=row + 2, column=3, value=mmap[label]["ENG"])
+        pos_sheet.cell(row=row + 2, column=4, value=mmap[label]["CHN"])
+        pos_sheet.cell(row=row + 2, column=5, value="%.0f" % gt)
+        pos_sheet.cell(row=row + 2, column=6, value="%.0f" % det)
+        pos_sheet.cell(row=row + 2, column=7, value="%.6f" % acc)
+
+    neg_sheet = workbook["negative"]
+    for col in range(0, len(TABLE_HEAD)):
+        neg_sheet.cell(row=10, column=col + 1, value=TABLE_HEAD[col])
+    for row in range(0, len(neg)):
+        item = neg[row]
+        label = model.CLASSES[int(item[0])]
+        gt = int(item[1])
+        det = int(item[2])
+        acc = item[3]
+        neg_sheet.cell(row=row + 2, column=1, value=label)
+        neg_sheet.cell(row=row + 2, column=2, value=mmap[label]["MID"])
+        neg_sheet.cell(row=row + 2, column=3, value=mmap[label]["ENG"])
+        neg_sheet.cell(row=row + 2, column=4, value=mmap[label]["CHN"])
+        neg_sheet.cell(row=row + 2, column=5, value="%.0f" % gt)
+        neg_sheet.cell(row=row + 2, column=6, value="%.0f" % det)
+        neg_sheet.cell(row=row + 2, column=7, value="%.6f" % acc)
+
+    workbook.save("statistics.xlsx")
 
 
 if __name__ == "__main__":

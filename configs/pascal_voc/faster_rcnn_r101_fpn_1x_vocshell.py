@@ -3,7 +3,7 @@ import os
 
 model = dict(
     type='FasterRCNN',
-    pretrained='work_dirs/faster_rcnn_r101_fpn_1x_vocsku/latest.pth',
+    pretrained='work_dirs/faster_rcnn_r101_fpn_1x_vocsku/epoch_12.pth',
     backbone=dict(
         type='ResNet',
         depth=101,
@@ -101,7 +101,7 @@ test_cfg = dict(
 )
 # dataset settings
 dataset_type = 'ShellDataset'
-data_root = 'data/VOCdevkit/shell/'
+data_root = 'data/VOCdevkit/shell/2019.8.1'
 img_norm_cfg = dict(
     mean=[123.675, 116.28, 103.53], std=[58.395, 57.12, 57.375], to_rgb=True)
 data = dict(
@@ -168,7 +168,7 @@ log_config = dict(
 total_epochs = 12
 dist_params = dict(backend='nccl')
 log_level = 'INFO'
-work_dir = './work_dirs/faster_rcnn_r101_fpn_1x_vocshell'
+work_dir = './work_dirs/faster_rcnn_r101_fpn_1x_vocshell_8.1'
 load_from = None
 resume_from = None
 workflow = [('train', 1)]

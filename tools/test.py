@@ -8,10 +8,11 @@ import torch
 import torch.distributed as dist
 from mmcv.runner import load_checkpoint, get_dist_info
 from mmcv.parallel import MMDataParallel, MMDistributedDataParallel
+from tools.voc_eval import voc_eval
 
 from mmdet.apis import init_dist, show_result
 from mmdet.core import results2json, coco_eval
-from mmdet.datasets import build_dataloader, get_dataset
+from mmdet.datasets import build_dataloader, get_dataset, ShellDataset
 from mmdet.models import build_detector
 
 
@@ -170,19 +171,22 @@ def main():
             print('Starting evaluate {}'.format(' and '.join(eval_types)))
             if eval_types == ['proposal_fast']:
                 result_file = args.out
-                coco_eval(result_file, eval_types, dataset.coco)
+                # coco_eval(result_file, eval_types, dataset.coco)
+                voc_eval(result_file, dataset)
             else:
                 if not isinstance(outputs[0], dict):
                     result_file = args.out + '.json'
-                    results2json(dataset, outputs, result_file)
-                    coco_eval(result_file, eval_types, dataset.coco)
+                    # results2json(dataset, outputs, result_file)
+                    # coco_eval(result_file, eval_types, dataset.coco)
+                    voc_eval(result_file, dataset)
                 else:
                     for name in outputs[0]:
                         print('\nEvaluating {}'.format(name))
                         outputs_ = [out[name] for out in outputs]
                         result_file = args.out + '.{}.json'.format(name)
-                        results2json(dataset, outputs_, result_file)
-                        coco_eval(result_file, eval_types, dataset.coco)
+                        # results2json(dataset, outputs_, result_file)
+                        # coco_eval(result_file, eval_types, dataset.coco)
+                        voc_eval(result_file, dataset)
 
 
 if __name__ == '__main__':
