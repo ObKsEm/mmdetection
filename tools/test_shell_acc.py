@@ -208,40 +208,46 @@ def main():
         acc = item[3]
         print("%s: %.0f gt, %.0f det, %.6f acc" % (model.CLASSES[label], gt, det, acc))
 
-    workbook = openpyxl.load_workbook("statistics.xlsx")
-    pos_sheet = workbook["positive"]
+    workbook = openpyxl.Workbook("statistics.xlsx")
+    pos_sheet = workbook.create_sheet("positive")
     for col in range(0, len(TABLE_HEAD)):
-        pos_sheet.cell(row=1, column=col + 1, value=TABLE_HEAD[col])
+        # pos_sheet.cell(row=1, column=col + 1, value=TABLE_HEAD[col])
+        pos_sheet.append(TABLE_HEAD)
     for row in range(0, len(pos)):
         item = pos[row]
         label = model.CLASSES[int(item[0])]
         gt = int(item[1])
         det = int(item[2])
         acc = item[3]
-        pos_sheet.cell(row=row + 2, column=1, value=label)
-        pos_sheet.cell(row=row + 2, column=2, value=mmap[label]["MID"])
-        pos_sheet.cell(row=row + 2, column=3, value=mmap[label]["ENG"])
-        pos_sheet.cell(row=row + 2, column=4, value=mmap[label]["CHN"])
-        pos_sheet.cell(row=row + 2, column=5, value="%.0f" % gt)
-        pos_sheet.cell(row=row + 2, column=6, value="%.0f" % det)
-        pos_sheet.cell(row=row + 2, column=7, value="%.6f" % acc)
+        # pos_sheet.cell(row=row + 2, column=1, value=label)
+        # pos_sheet.cell(row=row + 2, column=2, value=mmap[label]["MID"])
+        # pos_sheet.cell(row=row + 2, column=3, value=mmap[label]["ENG"])
+        # pos_sheet.cell(row=row + 2, column=4, value=mmap[label]["CHN"])
+        # pos_sheet.cell(row=row + 2, column=5, value="%.0f" % gt)
+        # pos_sheet.cell(row=row + 2, column=6, value="%.0f" % det)
+        # pos_sheet.cell(row=row + 2, column=7, value="%.6f" % acc)
+        pos_sheet.append([label, mmap[label]["MID"], mmap[label]["ENG"], mmap[label]["CHN"],
+                          "%.0f" % gt, "%.0f" % det, "%.6f" % acc])
 
-    neg_sheet = workbook["negative"]
+    neg_sheet = workbook.create_sheet("negative")
     for col in range(0, len(TABLE_HEAD)):
-        neg_sheet.cell(row=10, column=col + 1, value=TABLE_HEAD[col])
+        # neg_sheet.cell(row=1, column=col + 1, value=TABLE_HEAD[col])
+        neg_sheet.append(TABLE_HEAD)
     for row in range(0, len(neg)):
         item = neg[row]
         label = model.CLASSES[int(item[0])]
         gt = int(item[1])
         det = int(item[2])
         acc = item[3]
-        neg_sheet.cell(row=row + 2, column=1, value=label)
-        neg_sheet.cell(row=row + 2, column=2, value=mmap[label]["MID"])
-        neg_sheet.cell(row=row + 2, column=3, value=mmap[label]["ENG"])
-        neg_sheet.cell(row=row + 2, column=4, value=mmap[label]["CHN"])
-        neg_sheet.cell(row=row + 2, column=5, value="%.0f" % gt)
-        neg_sheet.cell(row=row + 2, column=6, value="%.0f" % det)
-        neg_sheet.cell(row=row + 2, column=7, value="%.6f" % acc)
+        # neg_sheet.cell(row=row + 2, column=1, value=label)
+        # neg_sheet.cell(row=row + 2, column=2, value=mmap[label]["MID"])
+        # neg_sheet.cell(row=row + 2, column=3, value=mmap[label]["ENG"])
+        # neg_sheet.cell(row=row + 2, column=4, value=mmap[label]["CHN"])
+        # neg_sheet.cell(row=row + 2, column=5, value="%.0f" % gt)
+        # neg_sheet.cell(row=row + 2, column=6, value="%.0f" % det)
+        # neg_sheet.cell(row=row + 2, column=7, value="%.6f" % acc)
+        neg_sheet.append([label, mmap[label]["MID"], mmap[label]["ENG"], mmap[label]["CHN"],
+                          "%.0f" % gt, "%.0f" % det, "%.6f" % acc])
 
     workbook.save("statistics.xlsx")
 
