@@ -5,7 +5,7 @@ import torch
 import torch.nn as nn
 from mmcv.cnn import normal_init
 
-from mmdet.core import (AnchorGenerator, anchor_target, delta2bbox,
+from mmdet.core import (AnchorGenerator, anchor_target, delta2bbox, force_fp32,
                         multi_apply, multiclass_nms)
 from ..builder import build_loss
 from ..registry import HEADS
@@ -57,13 +57,14 @@ class AnchorHead(nn.Module):
         self.target_stds = target_stds
 
         self.use_sigmoid_cls = loss_cls.get('use_sigmoid', False)
-        self.sampling = loss_cls['type'] not in ['FocalLoss']
+        self.sampling = loss_cls['type'] not in ['FocalLoss', 'GHMC']
         if self.use_sigmoid_cls:
             self.cls_out_channels = num_classes - 1
         else:
             self.cls_out_channels = num_classes
         self.loss_cls = build_loss(loss_cls)
         self.loss_bbox = build_loss(loss_bbox)
+        self.fp16_enabled = False
 
         self.anchor_generators = []
         for anchor_base in self.anchor_base_sizes:
@@ -149,6 +150,7 @@ class AnchorHead(nn.Module):
             avg_factor=num_total_samples)
         return loss_cls, loss_bbox
 
+    @force_fp32(apply_to=('cls_scores', 'bbox_preds'))
     def loss(self,
              cls_scores,
              bbox_preds,
@@ -193,6 +195,7 @@ class AnchorHead(nn.Module):
             cfg=cfg)
         return dict(loss_cls=losses_cls, loss_bbox=losses_bbox)
 
+    @force_fp32(apply_to=('cls_scores', 'bbox_preds'))
     def get_bboxes(self, cls_scores, bbox_preds, img_metas, cfg,
                    rescale=False):
         assert len(cls_scores) == len(bbox_preds)

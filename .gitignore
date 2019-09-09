@@ -117,3 +117,11 @@ result.jpg
 fzqh.ttf
 .DS_Store
 nohup.out
+# custom
+*.pkl
+*.pkl.json
+*.log.json
+work_dirs/
+
+# Pytorch
+*.pth

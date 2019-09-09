@@ -1,4 +1,5 @@
 import argparse
+import os
 import os.path as osp
 import shutil
 import tempfile
@@ -6,13 +7,17 @@ import tempfile
 import mmcv
 import torch
 import torch.distributed as dist
-from mmcv.runner import load_checkpoint, get_dist_info
 from mmcv.parallel import MMDataParallel, MMDistributedDataParallel
 from tools.voc_eval import voc_eval
 
 from mmdet.apis import init_dist, show_result
 from mmdet.core import results2json, coco_eval
-from mmdet.datasets import build_dataloader, get_dataset, ShellDataset
+from mmdet.datasets import build_dataloader, ShellDataset
+from mmcv.runner import get_dist_info, load_checkpoint
+
+from mmdet.apis import init_dist
+from mmdet.core import coco_eval, results2json, wrap_fp16_model
+from mmdet.datasets import build_dataloader, build_dataset
 from mmdet.models import build_detector
 
 
@@ -27,7 +32,7 @@ def single_gpu_test(model, data_loader, show=False):
         results.append(result)
 
         if show:
-            model.module.show_result(data, result, dataset.img_norm_cfg)
+            model.module.show_result(data, result)
 
         batch_size = data['img'][0].size(0)
         for _ in range(batch_size):
@@ -64,8 +69,10 @@ def collect_results(result_part, size, tmpdir=None):
     if tmpdir is None:
         MAX_LEN = 512
         # 32 is whitespace
-        dir_tensor = torch.full(
-            (MAX_LEN, ), 32, dtype=torch.uint8, device='cuda')
+        dir_tensor = torch.full((MAX_LEN, ),
+                                32,
+                                dtype=torch.uint8,
+                                device='cuda')
         if rank == 0:
             tmpdir = tempfile.mkdtemp()
             tmpdir = torch.tensor(
@@ -104,6 +111,10 @@ def parse_args():
     parser.add_argument('checkpoint', help='checkpoint file')
     parser.add_argument('--out', help='output result file')
     parser.add_argument(
+        '--json_out',
+        help='output result file name without extension',
+        type=str)
+    parser.add_argument(
         '--eval',
         type=str,
         nargs='+',
@@ -118,14 +129,23 @@ def parse_args():
         help='job launcher')
     parser.add_argument('--local_rank', type=int, default=0)
     args = parser.parse_args()
+    if 'LOCAL_RANK' not in os.environ:
+        os.environ['LOCAL_RANK'] = str(args.local_rank)
     return args
 
 
 def main():
     args = parse_args()
 
+    assert args.out or args.show or args.json_out, \
+        ('Please specify at least one operation (save or show the results) '
+         'with the argument "--out" or "--show" or "--json_out"')
+
     if args.out is not None and not args.out.endswith(('.pkl', '.pickle')):
         raise ValueError('The output file must be a pkl file.')
+
+    if args.json_out is not None and args.json_out.endswith('.json'):
+        args.json_out = args.json_out[:-5]
 
     cfg = mmcv.Config.fromfile(args.config)
     # set cudnn_benchmark
@@ -143,7 +163,7 @@ def main():
 
     # build the dataloader
     # TODO: support multiple images per gpu (only minor changes are needed)
-    dataset = get_dataset(cfg.data.test)
+    dataset = build_dataset(cfg.data.test)
     data_loader = build_dataloader(
         dataset,
         imgs_per_gpu=1,
@@ -153,7 +173,16 @@ def main():
 
     # build the model and load checkpoint
     model = build_detector(cfg.model, train_cfg=None, test_cfg=cfg.test_cfg)
-    load_checkpoint(model, args.checkpoint, map_location='cpu')
+    fp16_cfg = cfg.get('fp16', None)
+    if fp16_cfg is not None:
+        wrap_fp16_model(model)
+    checkpoint = load_checkpoint(model, args.checkpoint, map_location='cpu')
+    # old versions did not save class info in checkpoints, this walkaround is
+    # for backward compatibility
+    if 'CLASSES' in checkpoint['meta']:
+        model.CLASSES = checkpoint['meta']['CLASSES']
+    else:
+        model.CLASSES = dataset.CLASSES
 
     if not distributed:
         model = MMDataParallel(model, device_ids=[0])
@@ -175,18 +204,29 @@ def main():
                 voc_eval(result_file, dataset)
             else:
                 if not isinstance(outputs[0], dict):
-                    result_file = args.out + '.json'
-                    # results2json(dataset, outputs, result_file)
-                    # coco_eval(result_file, eval_types, dataset.coco)
-                    voc_eval(result_file, dataset)
+
+                    result_files = results2json(dataset, outputs, args.out)
+                    coco_eval(result_files, eval_types, dataset.coco)
+                    # voc_eval(result_file, dataset)
                 else:
                     for name in outputs[0]:
                         print('\nEvaluating {}'.format(name))
                         outputs_ = [out[name] for out in outputs]
-                        result_file = args.out + '.{}.json'.format(name)
-                        # results2json(dataset, outputs_, result_file)
-                        # coco_eval(result_file, eval_types, dataset.coco)
-                        voc_eval(result_file, dataset)
+
+                        result_file = args.out + '.{}'.format(name)
+                        result_files = results2json(dataset, outputs_,
+                                                    result_file)
+                        coco_eval(result_files, eval_types, dataset.coco)
+                        # voc_eval(result_file, dataset)
+    # Save predictions in the COCO json format
+    if args.json_out and rank == 0:
+        if not isinstance(outputs[0], dict):
+            results2json(dataset, outputs, args.json_out)
+        else:
+            for name in outputs[0]:
+                outputs_ = [out[name] for out in outputs]
+                result_file = args.json_out + '.{}'.format(name)
+                results2json(dataset, outputs_, result_file)
 
 
 if __name__ == '__main__':

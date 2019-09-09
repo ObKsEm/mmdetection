@@ -1,12 +1,11 @@
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
 from mmcv.cnn import normal_init
 
-from mmdet.core import (sigmoid_focal_loss, iou_loss, multi_apply,
-                        multiclass_nms, distance2bbox)
+from mmdet.core import distance2bbox, force_fp32, multi_apply, multiclass_nms
+from ..builder import build_loss
 from ..registry import HEADS
-from ..utils import bias_init_with_prob, Scale, ConvModule
+from ..utils import ConvModule, Scale, bias_init_with_prob
 
 INF = 1e8
 
@@ -22,6 +21,17 @@ class FCOSHead(nn.Module):
                  strides=(4, 8, 16, 32, 64),
                  regress_ranges=((-1, 64), (64, 128), (128, 256), (256, 512),
                                  (512, INF)),
+                 loss_cls=dict(
+                     type='FocalLoss',
+                     use_sigmoid=True,
+                     gamma=2.0,
+                     alpha=0.25,
+                     loss_weight=1.0),
+                 loss_bbox=dict(type='IoULoss', loss_weight=1.0),
+                 loss_centerness=dict(
+                     type='CrossEntropyLoss',
+                     use_sigmoid=True,
+                     loss_weight=1.0),
                  conv_cfg=None,
                  norm_cfg=dict(type='GN', num_groups=32, requires_grad=True)):
         super(FCOSHead, self).__init__()
@@ -33,8 +43,12 @@ class FCOSHead(nn.Module):
         self.stacked_convs = stacked_convs
         self.strides = strides
         self.regress_ranges = regress_ranges
+        self.loss_cls = build_loss(loss_cls)
+        self.loss_bbox = build_loss(loss_bbox)
+        self.loss_centerness = build_loss(loss_centerness)
         self.conv_cfg = conv_cfg
         self.norm_cfg = norm_cfg
+        self.fp16_enabled = False
 
         self._init_layers()
 
@@ -95,9 +109,11 @@ class FCOSHead(nn.Module):
         for reg_layer in self.reg_convs:
             reg_feat = reg_layer(reg_feat)
         # scale the bbox_pred of different level
-        bbox_pred = scale(self.fcos_reg(reg_feat)).exp()
+        # float to avoid overflow when enabling FP16
+        bbox_pred = scale(self.fcos_reg(reg_feat)).float().exp()
         return cls_score, bbox_pred, centerness
 
+    @force_fp32(apply_to=('cls_scores', 'bbox_preds', 'centernesses'))
     def loss(self,
              cls_scores,
              bbox_preds,
@@ -139,37 +155,38 @@ class FCOSHead(nn.Module):
 
         pos_inds = flatten_labels.nonzero().reshape(-1)
         num_pos = len(pos_inds)
-        loss_cls = sigmoid_focal_loss(
-            flatten_cls_scores, flatten_labels, cfg.gamma, cfg.alpha,
-            'none').sum()[None] / (num_pos + num_imgs)  # avoid num_pos is 0
+        loss_cls = self.loss_cls(
+            flatten_cls_scores, flatten_labels,
+            avg_factor=num_pos + num_imgs)  # avoid num_pos is 0
 
         pos_bbox_preds = flatten_bbox_preds[pos_inds]
-        pos_bbox_targets = flatten_bbox_targets[pos_inds]
         pos_centerness = flatten_centerness[pos_inds]
-        pos_centerness_targets = self.centerness_target(pos_bbox_targets)
 
         if num_pos > 0:
+            pos_bbox_targets = flatten_bbox_targets[pos_inds]
+            pos_centerness_targets = self.centerness_target(pos_bbox_targets)
             pos_points = flatten_points[pos_inds]
             pos_decoded_bbox_preds = distance2bbox(pos_points, pos_bbox_preds)
             pos_decoded_target_preds = distance2bbox(pos_points,
                                                      pos_bbox_targets)
             # centerness weighted iou loss
-            loss_reg = ((iou_loss(
+            loss_bbox = self.loss_bbox(
                 pos_decoded_bbox_preds,
                 pos_decoded_target_preds,
-                reduction='none') * pos_centerness_targets).sum() /
-                        pos_centerness_targets.sum())[None]
-            loss_centerness = F.binary_cross_entropy_with_logits(
-                pos_centerness, pos_centerness_targets, reduction='mean')[None]
+                weight=pos_centerness_targets,
+                avg_factor=pos_centerness_targets.sum())
+            loss_centerness = self.loss_centerness(pos_centerness,
+                                                   pos_centerness_targets)
         else:
-            loss_reg = pos_bbox_preds.sum()[None]
-            loss_centerness = pos_centerness.sum()[None]
+            loss_bbox = pos_bbox_preds.sum()
+            loss_centerness = pos_centerness.sum()
 
         return dict(
             loss_cls=loss_cls,
-            loss_reg=loss_reg,
+            loss_bbox=loss_bbox,
             loss_centerness=loss_centerness)
 
+    @force_fp32(apply_to=('cls_scores', 'bbox_preds', 'centernesses'))
     def get_bboxes(self,
                    cls_scores,
                    bbox_preds,
@@ -196,9 +213,10 @@ class FCOSHead(nn.Module):
             ]
             img_shape = img_metas[img_id]['img_shape']
             scale_factor = img_metas[img_id]['scale_factor']
-            det_bboxes = self.get_bboxes_single(
-                cls_score_list, bbox_pred_list, centerness_pred_list,
-                mlvl_points, img_shape, scale_factor, cfg, rescale)
+            det_bboxes = self.get_bboxes_single(cls_score_list, bbox_pred_list,
+                                                centerness_pred_list,
+                                                mlvl_points, img_shape,
+                                                scale_factor, cfg, rescale)
             result_list.append(det_bboxes)
         return result_list
 
@@ -321,6 +339,9 @@ class FCOSHead(nn.Module):
     def fcos_target_single(self, gt_bboxes, gt_labels, points, regress_ranges):
         num_points = points.size(0)
         num_gts = gt_labels.size(0)
+        if num_gts == 0:
+            return gt_labels.new_zeros(num_points), \
+                   gt_bboxes.new_zeros((num_points, 4))
 
         areas = (gt_bboxes[:, 2] - gt_bboxes[:, 0] + 1) * (
             gt_bboxes[:, 3] - gt_bboxes[:, 1] + 1)
