@@ -6,10 +6,10 @@ from mmdet.datasets import shell
 
 img_source_dir = "/home/lichengzhi/mmdetection/data/VOCdevkit/shell/标注图片"
 img_output_dir = "/home/lichengzhi/mmdetection/data/VOCdevkit/shell/JPEGImages"
-xml_source_dir = "/home/lichengzhi/mmdetection/data/VOCdevkit/shell/近景-油品"
-xml_output_dir = "/home/lichengzhi/mmdetection/data/VOCdevkit/shell/Annotations"
-main_dir = "/data/lichengzhi/mmdetection/data/VOCdevkit/shell/2019.8.1/ImageSets/Main"
-annotations_dir = "/data/lichengzhi/mmdetection/data/VOCdevkit/shell/2019.8.1/Annotations"
+xml_source_dir = "/home/lichengzhi/mmdetection/data/VOCdevkit/shell/2019.9.27/Annotations"
+xml_output_dir = "/home/lichengzhi/mmdetection/data/VOCdevkit/shell/2019.9.27/Annotations_alter"
+main_dir = "/home/lichengzhi/mmdetection/data/VOCdevkit/shell/2019.9.27/ImageSets/Main"
+annotations_dir = "/home/lichengzhi/mmdetection/data/VOCdevkit/shell/2019.9.27/Annotations"
 
 
 tags = shell.ShellDataset.CLASSES
@@ -21,9 +21,9 @@ def solve_xml():
             if not file.endswith('.xml'):
                 continue
             xml_name = file.replace(' ', '')
-            pos = xml_name.rfind('.')
-            pos = xml_name[: pos].rfind('.')
-            xml_name = xml_name[: pos] + ".xml"
+            # pos = xml_name.rfind('.')
+            # pos = xml_name[: pos].rfind('.')
+            # xml_name = xml_name[: pos] + ".xml"
             print("Parsing %s\n" % os.path.join(r, file))
             tree = ET.parse(os.path.join(r, file))
             root = tree.getroot()
@@ -40,6 +40,23 @@ def solve_xml():
             for obj in root.findall('object'):
                 name = obj.find('name').text
                 name = name.replace('_', ' / ')
+                if name == "壳牌先锋超凡喜力 SN PLUS 0W-20 天然气全合成油 1L":
+                    name = "壳牌先锋超凡喜力 SN PLUS 天然气全合成油 0W-20 1L"
+                elif name == "壳牌先锋超凡喜力 SN PLUS 0W-30 天然气全合成油 1L":
+                    name = "壳牌先锋超凡喜力 SN PLUS 天然气全合成油 0W-30 1L"
+                elif name == "壳牌先锋超凡喜力 SN PLUS 0W-20 天然气全合成油 4L":
+                    name = "壳牌先锋超凡喜力 SN PLUS 天然气全合成油 0W-20 4L"
+                elif name == "壳牌先锋超凡喜力 SN PLUS 0W-30 天然气全合成油 4L":
+                    name = "壳牌先锋超凡喜力 SN PLUS 天然气全合成油 0W-30 4L"
+                elif name == "壳牌先锋超凡喜力 ACEA C5 0W-20 天然气全合成油 1L":
+                    name = "壳牌先锋超凡喜力 ACEA C5 天然气全合成油 0W-20 1L"
+                elif name == "壳牌先锋超凡喜力 ACEA C5 0W-30 天然气全合成油 1L":
+                    name = "壳牌先锋超凡喜力 ACEA C2 / C3 天然气全合成油 0W-30 1L"
+                elif name == "壳牌先锋超凡喜力 ACEA C5 0W-20 天然气全合成油 4L":
+                    name = "壳牌先锋超凡喜力 ACEA C5 天然气全合成油 0W-20 4L"
+                elif name == "壳牌先锋超凡喜力 ACEA C5 0W-30 天然气全合成油 4L":
+                    name = "壳牌先锋超凡喜力 ACEA C2 / C3 天然气全合成油 0W-30 4L"
+                name = name.replace("壳牌极净超凡喜力 SN PLUS 天然气全合成机油", "壳牌极净超凡喜力 SN PLUS 天然气全合成油")
                 obj.find('name').text = name
                 if name not in tags:
                     print("Label %s in image %s no found.\n" % (name, xml_name))
@@ -76,11 +93,11 @@ def generate_main():
     for i in filelist:
         name = total_xml[i][:-4] + '\n'
         x = random.random()
-        if x < 0.05:
+        if x < 0.1:
             ftest.write(name)
         else:
             ftrainval.write(name)
-            if 0.05 <= x < 0.1:
+            if 0.1 <= x < 0.2:
                 fval.write(name)
             else:
                 ftrain.write(name)

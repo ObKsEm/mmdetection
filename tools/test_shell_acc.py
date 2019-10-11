@@ -21,9 +21,9 @@ import xml.etree.ElementTree as ET
 
 TABLE_HEAD = ["名称", "MID", "MID English description", "MID Chinese description", "样本个数", "识别个数", "准确率"]
 
-test_img_path = "/home/lichengzhi/mmdetection/data/VOCdevkit/shell/2019.8.1/JPEGImages"
-test_xml_path = "/home/lichengzhi/mmdetection/data/VOCdevkit/shell/2019.8.1/Annotations"
-test_path = "/home/lichengzhi/mmdetection/data/VOCdevkit/shell/2019.8.1/ImageSets/Main/test.txt"
+test_img_path = "/home/lichengzhi/mmdetection/data/VOCdevkit/shell/2019.9.27/JPEGImages"
+test_xml_path = "/home/lichengzhi/mmdetection/data/VOCdevkit/shell/2019.9.27/Annotations"
+test_path = "/home/lichengzhi/mmdetection/data/VOCdevkit/shell/2019.9.27/ImageSets/Main/test.txt"
 
 
 def parse_args():
@@ -85,34 +85,20 @@ def get_result(result, score_thr=0.5):
         inds = scores > score_thr
         bboxes = bboxes[inds, :]
         labels = labels[inds]
+        scores = scores[inds]
 
     test_bboxes = nms(bboxes, 0.5)
     new_bboxes = [bboxes[i] for i in test_bboxes[1]]
     new_labels = [labels[i] for i in test_bboxes[1]]
+    new_scores = [scores[i] for i in test_bboxes[1]]
 
-    # for bbox, label in zip(new_bboxes, new_labels):
-    #     bbox_int = bbox.astype(np.int32)
-    #     left_top = (bbox_int[0], bbox_int[1])
-    #     right_bottom = (bbox_int[2], bbox_int[3])
-    #     cv2.rectangle(
-    #         img, left_top, right_bottom, bbox_color, thickness=thickness)
-    #     label_text = class_names[
-    #         label] if class_names is not None else 'cls {}'.format(label)
-    #     if len(bbox) > 4:
-    #         label_text += '|{:.02f}'.format(bbox[-1])
-    #     img = write_text_to_image(img, label_text, (bbox_int[0], bbox_int[1] - 2), text_color)
-    #
-    # # if show:
-    # #     imshow(img, win_name, wait_time)
-    # if out_file is not None:
-    #     imwrite(img, out_file)
-    return new_bboxes, new_labels
+    return new_bboxes, new_labels, new_scores
 
 
 def load_name2mid(name2id):
     mmap = dict()
     source_wb = openpyxl.load_workbook(name2id, read_only=True)
-    sheet = source_wb.get_sheet_by_name("Sheet1")
+    sheet = source_wb["Sheet1"]
     for row in sheet.rows:
         name = str(row[0].value)
         mid = str(row[1].value)
@@ -146,6 +132,8 @@ def main():
     gt_cls_num = np.zeros((len(model.CLASSES)))
     det_cls_num = np.zeros((len(model.CLASSES)))
     with open(test_path, "r") as f:
+        delta_gt_cls_num = np.zeros((len(model.CLASSES)))
+        delta_det_cls_num = np.zeros((len(model.CLASSES)))
         filenames = f.readlines()
         for filename in filenames:
             img_file = filename.strip() + ".jpg"
@@ -161,24 +149,34 @@ def main():
                 gt_labels = [coord[4] for coord in coords]
                 for label in gt_labels:
                     gt_cls_num[cls2id[label]] += 1
+                    delta_gt_cls_num[cls2id[label]] += 1
                 tot += len(gt_bboxes)
                 result = inference_detector(model, img)
-                det_bboxes, det_labels = get_result(result, score_thr=0.5)
+                det_bboxes, det_labels, det_scores = get_result(result, score_thr=0.5)
                 ious = bbox_overlaps(np.array(det_bboxes), np.array(gt_bboxes))
                 ious_max = ious.max(axis=1)
                 ious_argmax = ious.argmax(axis=1)
+                gt_matched_det = np.ones((len(gt_bboxes))) * -1
+                gt_matched_scores = np.zeros((len(gt_bboxes)))
                 for i in range(0, len(det_bboxes)):
                     if ious_max[i] > 0.5:
-                        matched_gt = ious_argmax[i]
-                        if model.CLASSES[det_labels[i]] == gt_labels[matched_gt]:
-                            det_cls_num[det_labels[i]] += 1
+                        target_gt = ious_argmax[i]
+                        if gt_matched_scores[target_gt] < det_scores[i]:
+                            gt_matched_scores[target_gt] = det_scores[i]
+                            gt_matched_det[target_gt] = i
+                for i in range(0, len(gt_matched_det)):
+                    det = int(gt_matched_det[i])
+                    if det is not -1:
+                        if model.CLASSES[det_labels[det]] == gt_labels[i]:
+                            det_cls_num[det_labels[det]] += 1
+                            delta_det_cls_num[det_labels[det]] += 1
                             acc += 1
-
+                assert (delta_det_cls_num <= delta_gt_cls_num).all()
     print("total gt: %d,  det: %d" % (tot, acc))
     print("accuracy: %f" % (acc / tot))
     mat = np.zeros((len(model.CLASSES), 4))
     for i in range(0, len(model.CLASSES)):
-        print("%s: %.0f gt, %.0f det, %.6f acc" %
+        print("%s: %.0f gt, %.0f det, accuracy: %.6f" %
               (model.CLASSES[i], gt_cls_num[i], det_cls_num[i], det_cls_num[i] / gt_cls_num[i] if gt_cls_num[i] > 0 else 0))
         mat[i][0] = i
         mat[i][1] = gt_cls_num[i]

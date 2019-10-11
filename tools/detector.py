@@ -11,7 +11,9 @@ from mmdet.ops import nms
 
 from mmdet.apis import init_detector, inference_detector, show_result
 from mmdet.datasets.shell import ShellDataset
+from mmdet.datasets.MidChineseDescription import MidChineseDescriptionDataset
 from mmdet.datasets.sku import SkuDataset
+from mmdet.datasets.uav import UavDataset
 
 font = ImageFont.truetype('fzqh.ttf', 20)
 
@@ -48,7 +50,8 @@ def write_text_to_image(img_OpenCV, label, bbox, text_color):
     return ret
 
 
-def show_result_in_Chinese(img, result, class_names, score_thr=0.3, out_file=None, thickness=1, bbox_color='green', text_color='green'):
+def show_result_in_Chinese(img, result, class_names, score_thr=0.3, out_file=None, thickness=1, bbox_color='green',
+                           text_color='green'):
     assert isinstance(class_names, (tuple, list))
     img = mmcv.imread(img)
     if isinstance(result, tuple):
@@ -117,14 +120,15 @@ def main():
     checkpoint_file = args.checkpoint
 
     # build the model from a config file and a checkpoint file
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     model = init_detector(config_file, checkpoint_file, device=device)
-    model.CLASSES = SkuDataset.CLASSES
+    model.CLASSES = MidChineseDescriptionDataset.CLASSES
     # test a single image and show the results
 
-    img = cv2.imread(args.image)
+    img = mmcv.imread(args.image)
+    # out_name = args.image[:-4] + "_det.jpg"
     result = inference_detector(model, img)
-    # show_result(img, result, model.CLASSES, score_thr=0.3, out_file=args.out)
+    # show_result(img, result, model.CLASSES, score_thr=0.5, out_file=args.out, show=False)
     show_result_in_Chinese(img, result, model.CLASSES, score_thr=0.5, out_file=args.out)
 
     # test a list of images and write the results to image files

@@ -35,13 +35,9 @@ def init_detector(config, checkpoint=None, device='cuda:0', load_classes=False):
     if checkpoint is not None:
         checkpoint = load_checkpoint(model, checkpoint, map_location=device)
         if 'CLASSES' in checkpoint['meta']:
-<<<<<<< HEAD
-            model.CLASSES = checkpoint['meta']['classes']
-        elif load_classes:
-=======
+
             model.CLASSES = checkpoint['meta']['CLASSES']
         else:
->>>>>>> upstream/master
             warnings.warn('Class names are not saved in the checkpoint\'s '
                           'meta data, use COCO classes by default.')
             # warnings.warn('Class names are not saved in the checkpoint\'s '
@@ -102,7 +98,7 @@ def show_result(img,
                 class_names,
                 score_thr=0.3,
                 wait_time=0,
-                show=True,
+                show=False,
                 out_file=None):
     """Visualize the detection results on the image.
 

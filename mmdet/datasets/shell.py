@@ -1,7 +1,9 @@
-from .voc import VOCDataset
+from .registry import DATASETS
+from .xml_style import XMLDataset
 
 
-class ShellDataset(VOCDataset):
+@DATASETS.register_module
+class ShellDataset(XMLDataset):
 
     CLASSES = (
         '壳牌喜力 HX6 SN 合成技术发动机油 5W-30 1L',
@@ -152,5 +154,13 @@ class ShellDataset(VOCDataset):
         '壳牌机动车发动机冷却液 OAT -30℃',
         '壳牌机动车发动机冷却液 OAT -45℃',
         '壳牌清洗油',
-        '未识别SKU'
+        '未识别SKU',
+        '壳牌先锋超凡喜力 SN PLUS 天然气全合成油 0W-20 4L',
+        '壳牌先锋超凡喜力 SN PLUS 天然气全合成油 0W-20 1L',
+        '壳牌先锋超凡喜力 SN PLUS 天然气全合成油 0W-30 4L',
+        '壳牌先锋超凡喜力 SN PLUS 天然气全合成油 0W-30 1L',
+        '壳牌先锋超凡喜力 ACEA C5 天然气全合成油 0W-20 4L',
+        '壳牌先锋超凡喜力 ACEA C5 天然气全合成油 0W-20 1L',
+        '壳牌先锋超凡喜力 ACEA C2 / C3 天然气全合成油 0W-30 4L',
+        '壳牌先锋超凡喜力 ACEA C2 / C3 天然气全合成油 0W-30 1L',
     )
