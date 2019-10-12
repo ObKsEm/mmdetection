@@ -208,9 +208,7 @@ def main():
 
     workbook = openpyxl.Workbook("statistics.xlsx")
     pos_sheet = workbook.create_sheet("positive")
-    for col in range(0, len(TABLE_HEAD)):
-        # pos_sheet.cell(row=1, column=col + 1, value=TABLE_HEAD[col])
-        pos_sheet.append(TABLE_HEAD)
+    pos_sheet.append(TABLE_HEAD)
     for row in range(0, len(pos)):
         item = pos[row]
         label = model.CLASSES[int(item[0])]

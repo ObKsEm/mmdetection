@@ -15,8 +15,8 @@ def parse_xml(xml_path):
 
 
 def main():
-    # xml_base_path = "/home/lichengzhi/mmdetection/data/VOCdevkit/shell/OriginalData/Annotations"
-    xml_base_path = "/home/lichengzhi/CV_ToolBox/data/2019.8.1/Annotations"
+    xml_base_path = "/home/lichengzhi/mmdetection/data/VOCdevkit/shell/2019.9.27/Annotations"
+    # xml_base_path = "/home/lichengzhi/CV_ToolBox/data/2019.8.1/Annotations"
     classes = ShellDataset.CLASSES
     d = dict()
     for label in classes:

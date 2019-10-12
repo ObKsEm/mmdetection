@@ -10,9 +10,10 @@ def main():
     sheet = source_wb["Sheet1"]
     for row in sheet.rows:
         name = str(row[0].value)
+        mid = str(row[1].value)
         chn = str(row[3].value)
         if chn is not 'None':
-            mmap[name] = chn
+            mmap[name] = mid
         else:
             mmap[name] = "Unknown"
     for name in ShellDataset.CLASSES:
