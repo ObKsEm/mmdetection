@@ -2,17 +2,18 @@ import os
 import cv2
 import xml.etree.ElementTree as ET
 import random
-from mmdet.datasets import shell
+from mmdet.datasets import shell, rosegold
 
 img_source_dir = "/home/lichengzhi/mmdetection/data/VOCdevkit/shell/标注图片"
 img_output_dir = "/home/lichengzhi/mmdetection/data/VOCdevkit/shell/JPEGImages"
-xml_source_dir = "/home/lichengzhi/mmdetection/data/VOCdevkit/shell/2019.9.27/Annotations"
-xml_output_dir = "/home/lichengzhi/mmdetection/data/VOCdevkit/shell/2019.9.27/Annotations_alter"
-main_dir = "/home/lichengzhi/mmdetection/data/VOCdevkit/shell/2019.9.27/ImageSets/Main"
-annotations_dir = "/home/lichengzhi/mmdetection/data/VOCdevkit/shell/2019.9.27/Annotations"
+xml_source_dir = "/home/lichengzhi/mmdetection/data/VOCdevkit/shell/2019.10.16/Annotations"
+xml_output_dir = "/home/lichengzhi/mmdetection/data/VOCdevkit/shell/2019.10.16/Annotations_alter"
+main_dir = "/home/lichengzhi/mmdetection/data/VOCdevkit/uav/syn/ImageSets/Main"
+annotations_dir = "/home/lichengzhi/mmdetection/data/VOCdevkit/uav/syn/Annotations"
 
 
-tags = shell.ShellDataset.CLASSES
+# tags = shell.ShellDataset.CLASSES
+tags = rosegold.RoseGoldDataset.CLASSES
 
 
 def solve_xml():
@@ -39,24 +40,8 @@ def solve_xml():
 
             for obj in root.findall('object'):
                 name = obj.find('name').text
-                name = name.replace('_', ' / ')
-                if name == "壳牌先锋超凡喜力 SN PLUS 0W-20 天然气全合成油 1L":
-                    name = "壳牌先锋超凡喜力 SN PLUS 天然气全合成油 0W-20 1L"
-                elif name == "壳牌先锋超凡喜力 SN PLUS 0W-30 天然气全合成油 1L":
-                    name = "壳牌先锋超凡喜力 SN PLUS 天然气全合成油 0W-30 1L"
-                elif name == "壳牌先锋超凡喜力 SN PLUS 0W-20 天然气全合成油 4L":
-                    name = "壳牌先锋超凡喜力 SN PLUS 天然气全合成油 0W-20 4L"
-                elif name == "壳牌先锋超凡喜力 SN PLUS 0W-30 天然气全合成油 4L":
-                    name = "壳牌先锋超凡喜力 SN PLUS 天然气全合成油 0W-30 4L"
-                elif name == "壳牌先锋超凡喜力 ACEA C5 0W-20 天然气全合成油 1L":
-                    name = "壳牌先锋超凡喜力 ACEA C5 天然气全合成油 0W-20 1L"
-                elif name == "壳牌先锋超凡喜力 ACEA C5 0W-30 天然气全合成油 1L":
-                    name = "壳牌先锋超凡喜力 ACEA C2 / C3 天然气全合成油 0W-30 1L"
-                elif name == "壳牌先锋超凡喜力 ACEA C5 0W-20 天然气全合成油 4L":
-                    name = "壳牌先锋超凡喜力 ACEA C5 天然气全合成油 0W-20 4L"
-                elif name == "壳牌先锋超凡喜力 ACEA C5 0W-30 天然气全合成油 4L":
-                    name = "壳牌先锋超凡喜力 ACEA C2 / C3 天然气全合成油 0W-30 4L"
-                name = name.replace("壳牌极净超凡喜力 SN PLUS 天然气全合成机油", "壳牌极净超凡喜力 SN PLUS 天然气全合成油")
+                if name.find("先锋") == -1:
+                    name = "其他"
                 obj.find('name').text = name
                 if name not in tags:
                     print("Label %s in image %s no found.\n" % (name, xml_name))

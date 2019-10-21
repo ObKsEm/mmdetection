@@ -39,7 +39,7 @@ model = dict(
         in_channels=256,
         fc_out_channels=1024,
         roi_feat_size=7,
-        num_classes=158,
+        num_classes=10,
         target_means=[0., 0., 0., 0.],
         target_stds=[0.1, 0.1, 0.2, 0.2],
         reg_class_agnostic=False,
@@ -100,8 +100,8 @@ test_cfg = dict(
     # e.g., nms=dict(type='soft_nms', iou_thr=0.5, min_score=0.05)
 )
 # dataset settings
-dataset_type = 'ShellDataset'
-data_root = 'data/VOCdevkit/shell/2019.9.27'
+dataset_type = 'RoseGoldDataset'
+data_root = 'data/VOCdevkit/shell/2019.10.16'
 img_norm_cfg = dict(
     mean=[123.675, 116.28, 103.53], std=[58.395, 57.12, 57.375], to_rgb=True)
 train_pipeline = [
@@ -175,7 +175,7 @@ log_config = dict(
 total_epochs = 12
 dist_params = dict(backend='nccl')
 log_level = 'INFO'
-work_dir = './work_dirs/faster_rcnn_r101_fpn_1x_vocshell_9.27'
+work_dir = './work_dirs/faster_rcnn_r101_fpn_1x_vocshell_10.16'
 load_from = None
 resume_from = None
 workflow = [('train', 1)]

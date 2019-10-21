@@ -8,12 +8,16 @@ import torch
 from PIL import Image, ImageFont, ImageDraw
 from mmcv import color_val, imwrite
 from mmdet.ops import nms
+import matplotlib
+matplotlib.use('TkAgg')
+import matplotlib.pyplot as plt
 
 from mmdet.apis import init_detector, inference_detector, show_result
 from mmdet.datasets.shell import ShellDataset
 from mmdet.datasets.MidChineseDescription import MidChineseDescriptionDataset
 from mmdet.datasets.sku import SkuDataset
 from mmdet.datasets.uav import UavDataset
+from mmdet.datasets.rosegold import RoseGoldDataset, RoseGoldMidDataset
 
 font = ImageFont.truetype('fzqh.ttf', 20)
 
@@ -104,8 +108,7 @@ def show_result_in_Chinese(img, result, class_names, score_thr=0.3, out_file=Non
             label_text += '|{:.02f}'.format(bbox[-1])
         img = write_text_to_image(img, label_text, (bbox_int[0], bbox_int[1] - 2), text_color)
 
-    # if show:
-    #     imshow(img, win_name, wait_time)
+    cv2.imshow("test", img)
     if out_file is not None:
         imwrite(img, out_file)
 
@@ -122,7 +125,7 @@ def main():
     # build the model from a config file and a checkpoint file
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     model = init_detector(config_file, checkpoint_file, device=device)
-    model.CLASSES = MidChineseDescriptionDataset.CLASSES
+    model.CLASSES = UavDataset.CLASSES
     # test a single image and show the results
 
     img = mmcv.imread(args.image)
