@@ -6,10 +6,10 @@ from mmdet.datasets import shell, rosegold
 
 img_source_dir = "/home/lichengzhi/mmdetection/data/VOCdevkit/shell/标注图片"
 img_output_dir = "/home/lichengzhi/mmdetection/data/VOCdevkit/shell/JPEGImages"
-xml_source_dir = "/home/lichengzhi/mmdetection/data/VOCdevkit/shell/2019.10.16/Annotations"
-xml_output_dir = "/home/lichengzhi/mmdetection/data/VOCdevkit/shell/2019.10.16/Annotations_alter"
-main_dir = "/home/lichengzhi/mmdetection/data/VOCdevkit/uav/syn/ImageSets/Main"
-annotations_dir = "/home/lichengzhi/mmdetection/data/VOCdevkit/uav/syn/Annotations"
+xml_source_dir = "/home/lichengzhi/mmdetection/data/VOCdevkit/shell/2019.10.25/Annotations_original"
+xml_output_dir = "/home/lichengzhi/mmdetection/data/VOCdevkit/shell/2019.10.25/Annotations_alter"
+main_dir = "/home/lichengzhi/mmdetection/data/VOCdevkit/shell/2019.10.25/ImageSets/Main"
+annotations_dir = "/home/lichengzhi/mmdetection/data/VOCdevkit/shell/2019.10.25/Annotations"
 
 
 # tags = shell.ShellDataset.CLASSES
@@ -17,6 +17,7 @@ tags = rosegold.RoseGoldDataset.CLASSES
 
 
 def solve_xml():
+    print(tags)
     for r, dirs, files in os.walk(xml_source_dir):
         for file in files:
             if not file.endswith('.xml'):
@@ -39,7 +40,8 @@ def solve_xml():
             assert(xml_name[:-4] == img_name[:-4])
 
             for obj in root.findall('object'):
-                name = obj.find('name').text
+                name = obj.find('name').text.strip("\ufeff")
+                name = name.replace('_', '/')
                 if name.find("先锋") == -1:
                     name = "其他"
                 obj.find('name').text = name

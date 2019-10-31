@@ -101,7 +101,7 @@ test_cfg = dict(
 )
 # dataset settings
 dataset_type = 'RoseGoldDataset'
-data_root = 'data/VOCdevkit/shell/2019.10.16'
+data_root = 'data/VOCdevkit/shell/2019.10.25'
 img_norm_cfg = dict(
     mean=[123.675, 116.28, 103.53], std=[58.395, 57.12, 57.375], to_rgb=True)
 train_pipeline = [
@@ -175,7 +175,7 @@ log_config = dict(
 total_epochs = 12
 dist_params = dict(backend='nccl')
 log_level = 'INFO'
-work_dir = './work_dirs/faster_rcnn_r101_fpn_1x_vocshell_10.16'
+work_dir = './work_dirs/faster_rcnn_r101_fpn_1x_vocshell_10.25'
 load_from = None
 resume_from = None
 workflow = [('train', 1)]

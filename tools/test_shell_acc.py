@@ -17,13 +17,14 @@ from mmdet.ops import nms
 from mmdet.apis import init_detector, inference_detector, show_result
 from mmdet.datasets.shell import ShellDataset
 from mmdet.datasets.sku import SkuDataset
+from mmdet.datasets.rosegold import RoseGoldDataset
 import xml.etree.ElementTree as ET
 
 TABLE_HEAD = ["名称", "MID", "MID English description", "MID Chinese description", "样本个数", "识别个数", "准确率"]
 
-test_img_path = "/home/lichengzhi/mmdetection/data/VOCdevkit/shell/2019.9.27/JPEGImages"
-test_xml_path = "/home/lichengzhi/mmdetection/data/VOCdevkit/shell/2019.9.27/Annotations"
-test_path = "/home/lichengzhi/mmdetection/data/VOCdevkit/shell/2019.9.27/ImageSets/Main/test.txt"
+test_img_path = "/home/lichengzhi/mmdetection/data/VOCdevkit/shell/2019.10.25/JPEGImages"
+test_xml_path = "/home/lichengzhi/mmdetection/data/VOCdevkit/shell/2019.10.25/Annotations"
+test_path = "/home/lichengzhi/mmdetection/data/VOCdevkit/shell/2019.10.25/ImageSets/Main/test.txt"
 
 
 def parse_args():
@@ -124,7 +125,7 @@ def main():
     # build the model from a config file and a checkpoint file
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model = init_detector(config_file, checkpoint_file, device=device)
-    model.CLASSES = ShellDataset.CLASSES
+    model.CLASSES = RoseGoldDataset.CLASSES
     cls2id = dict(zip(model.CLASSES, range(0, len(model.CLASSES))))
     # test a single image and show the results
     acc = 0.0
@@ -166,7 +167,7 @@ def main():
                             gt_matched_det[target_gt] = i
                 for i in range(0, len(gt_matched_det)):
                     det = int(gt_matched_det[i])
-                    if det is not -1:
+                    if det > -1:
                         if model.CLASSES[det_labels[det]] == gt_labels[i]:
                             det_cls_num[det_labels[det]] += 1
                             delta_det_cls_num[det_labels[det]] += 1
@@ -196,7 +197,7 @@ def main():
         gt = int(item[1])
         det = int(item[2])
         acc = item[3]
-        print("%s: %.0f gt, %.0f det, %.6f acc" % (model.CLASSES[label], gt, det, acc))
+        print("%s: %.0f gt, %.0f det, %.6f accuracy" % (model.CLASSES[label], gt, det, acc))
     print("----------------------------------------------------")
     for i in range(0, len(neg)):
         item = neg[i]
@@ -204,7 +205,7 @@ def main():
         gt = int(item[1])
         det = int(item[2])
         acc = item[3]
-        print("%s: %.0f gt, %.0f det, %.6f acc" % (model.CLASSES[label], gt, det, acc))
+        print("%s: %.0f gt, %.0f det, %.6f accuracy" % (model.CLASSES[label], gt, det, acc))
 
     workbook = openpyxl.Workbook("statistics.xlsx")
     pos_sheet = workbook.create_sheet("positive")
@@ -226,9 +227,7 @@ def main():
                           "%.0f" % gt, "%.0f" % det, "%.6f" % acc])
 
     neg_sheet = workbook.create_sheet("negative")
-    for col in range(0, len(TABLE_HEAD)):
-        # neg_sheet.cell(row=1, column=col + 1, value=TABLE_HEAD[col])
-        neg_sheet.append(TABLE_HEAD)
+    neg_sheet.append(TABLE_HEAD)
     for row in range(0, len(neg)):
         item = neg[row]
         label = model.CLASSES[int(item[0])]

@@ -108,7 +108,6 @@ def show_result_in_Chinese(img, result, class_names, score_thr=0.3, out_file=Non
             label_text += '|{:.02f}'.format(bbox[-1])
         img = write_text_to_image(img, label_text, (bbox_int[0], bbox_int[1] - 2), text_color)
 
-    cv2.imshow("test", img)
     if out_file is not None:
         imwrite(img, out_file)
 
@@ -125,19 +124,24 @@ def main():
     # build the model from a config file and a checkpoint file
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     model = init_detector(config_file, checkpoint_file, device=device)
-    model.CLASSES = UavDataset.CLASSES
+    model.CLASSES = RoseGoldDataset.CLASSES
     # test a single image and show the results
 
-    img = mmcv.imread(args.image)
-    # out_name = args.image[:-4] + "_det.jpg"
-    result = inference_detector(model, img)
+    # img = mmcv.imread(args.image)
+
+    # result = inference_detector(model, img)
     # show_result(img, result, model.CLASSES, score_thr=0.5, out_file=args.out, show=False)
-    show_result_in_Chinese(img, result, model.CLASSES, score_thr=0.5, out_file=args.out)
+    # show_result_in_Chinese(img, result, model.CLASSES, score_thr=0.5, out_file=args.out)
 
     # test a list of images and write the results to image files
-    # imgs = ['test1.jpg', 'test2.jpg']
-    # for i, result in enumerate(inference_detector(model, imgs, device='cuda:0')):
-    #     show_result(imgs[i], result, model.CLASSES, out_file='result_{}.jpg'.format(i))
+    imgs = ['/home/lichengzhi/mmdetection/demo/test25.jpg', '/home/lichengzhi/mmdetection/demo/test26.jpg',
+            '/home/lichengzhi/mmdetection/demo/test27.jpg', '/home/lichengzhi/mmdetection/demo/test28.jpg',
+            '/home/lichengzhi/mmdetection/demo/test29.jpg', '/home/lichengzhi/mmdetection/demo/test30.jpg']
+    for img in imgs:
+        pos = img.rfind('/')
+        imgname = img[pos + 1:]
+        result = inference_detector(model, img)
+        show_result_in_Chinese(img, result, model.CLASSES, score_thr=0.5, out_file='result_{}'.format(imgname))
 
 
 if __name__ == "__main__":
