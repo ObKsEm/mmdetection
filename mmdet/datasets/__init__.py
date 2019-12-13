@@ -14,11 +14,12 @@ from .sku import SkuDataset
 from .uav import UavDataset
 from .MidChineseDescription import MidChineseDescriptionDataset
 from .rosegold import RoseGoldDataset, RoseGoldMidDataset
-
+from .character import CharacterDataset
+from .rgcoco import RGCocoDataset
 __all__ = [
     'CustomDataset', 'XMLDataset', 'CocoDataset', 'VOCDataset',
     'CityscapesDataset', 'GroupSampler', 'DistributedGroupSampler',
     'build_dataloader', 'ConcatDataset', 'RepeatDataset', 'ExtraAugmentation',
     'WIDERFaceDataset', 'DATASETS', 'build_dataset', 'ShellDataset', 'SkuDataset', 'UavDataset', 'MidChineseDescription', 'RoseGoldDataset',
-    'RoseGoldMidDataset'
+    'RoseGoldMidDataset', 'CharacterDataset', 'RGCocoDataset'
 ]

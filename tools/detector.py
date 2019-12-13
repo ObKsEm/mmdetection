@@ -1,4 +1,5 @@
 import argparse
+import os
 
 import cv2
 import mmcv
@@ -18,6 +19,8 @@ from mmdet.datasets.MidChineseDescription import MidChineseDescriptionDataset
 from mmdet.datasets.sku import SkuDataset
 from mmdet.datasets.uav import UavDataset
 from mmdet.datasets.rosegold import RoseGoldDataset, RoseGoldMidDataset
+from mmdet.datasets.character import CharacterDataset
+from mmdet.datasets.rgcoco import RGCocoDataset
 
 font = ImageFont.truetype('fzqh.ttf', 20)
 
@@ -124,24 +127,28 @@ def main():
     # build the model from a config file and a checkpoint file
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     model = init_detector(config_file, checkpoint_file, device=device)
-    model.CLASSES = RoseGoldDataset.CLASSES
+    model.CLASSES = CharacterDataset.CLASSES
     # test a single image and show the results
 
     # img = mmcv.imread(args.image)
-
+    #
     # result = inference_detector(model, img)
     # show_result(img, result, model.CLASSES, score_thr=0.5, out_file=args.out, show=False)
     # show_result_in_Chinese(img, result, model.CLASSES, score_thr=0.5, out_file=args.out)
 
     # test a list of images and write the results to image files
-    imgs = ['/home/lichengzhi/mmdetection/demo/test25.jpg', '/home/lichengzhi/mmdetection/demo/test26.jpg',
-            '/home/lichengzhi/mmdetection/demo/test27.jpg', '/home/lichengzhi/mmdetection/demo/test28.jpg',
-            '/home/lichengzhi/mmdetection/demo/test29.jpg', '/home/lichengzhi/mmdetection/demo/test30.jpg']
+    # imgs = ['/home/lichengzhi/mmdetection/demo/shell/test25.jpg', '/home/lichengzhi/mmdetection/demo/shell/test26.jpg',
+    #         '/home/lichengzhi/mmdetection/demo/shell/test27.jpg', '/home/lichengzhi/mmdetection/demo/shell/test28.jpg',
+    #         '/home/lichengzhi/mmdetection/demo/shell/test29.jpg', '/home/lichengzhi/mmdetection/demo/shell/test30.jpg']
+    imgs = []
+    for r, _, files in os.walk("./demo/character"):
+        for file in files:
+            imgs.append(os.path.join(r, file))
     for img in imgs:
         pos = img.rfind('/')
         imgname = img[pos + 1:]
         result = inference_detector(model, img)
-        show_result_in_Chinese(img, result, model.CLASSES, score_thr=0.5, out_file='result_{}'.format(imgname))
+        show_result_in_Chinese(img, result, model.CLASSES, score_thr=0.3, out_file='result_{}'.format(imgname))
 
 
 if __name__ == "__main__":

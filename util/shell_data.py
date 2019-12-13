@@ -6,10 +6,11 @@ from mmdet.datasets import shell, rosegold
 
 img_source_dir = "/home/lichengzhi/mmdetection/data/VOCdevkit/shell/标注图片"
 img_output_dir = "/home/lichengzhi/mmdetection/data/VOCdevkit/shell/JPEGImages"
-xml_source_dir = "/home/lichengzhi/mmdetection/data/VOCdevkit/shell/2019.10.25/Annotations_original"
-xml_output_dir = "/home/lichengzhi/mmdetection/data/VOCdevkit/shell/2019.10.25/Annotations_alter"
-main_dir = "/home/lichengzhi/mmdetection/data/VOCdevkit/shell/2019.10.25/ImageSets/Main"
-annotations_dir = "/home/lichengzhi/mmdetection/data/VOCdevkit/shell/2019.10.25/Annotations"
+xml_source_dir = "/home/lichengzhi/mmdetection/data/VOCdevkit/shell/2019.11.19/Annotations_bailian"
+xml_output_dir = "/home/lichengzhi/mmdetection/data/VOCdevkit/shell/2019.11.19/Annotations_alter"
+
+
+
 
 
 # tags = shell.ShellDataset.CLASSES
@@ -42,6 +43,10 @@ def solve_xml():
             for obj in root.findall('object'):
                 name = obj.find('name').text.strip("\ufeff")
                 name = name.replace('_', '/')
+                if name == '壳牌先锋超凡喜力 ACEA C2 / C3 天然气全合成油 0W-40 4L':
+                    name = "壳牌先锋超凡喜力 ACEA A3 / B4 天然气全合成油 0W-40 4L"
+                if name == '壳牌先锋超凡喜力 ACEA C2 / C3 天然气全合成油 0W-40 1L':
+                    name = "壳牌先锋超凡喜力 ACEA A3 / B4 天然气全合成油 0W-40 1L"
                 if name.find("先锋") == -1:
                     name = "其他"
                 obj.find('name').text = name
@@ -68,7 +73,10 @@ def solve_img():
 
 
 def generate_main():
-
+    main_dir = "/home/lichengzhi/mmdetection/data/VOCdevkit/shell/2019.11.19/ImageSets/Main"
+    annotations_dir = "/home/lichengzhi/mmdetection/data/VOCdevkit/shell/2019.11.19/Annotations"
+    if not os.path.exists(main_dir):
+        os.makedirs(main_dir)
     total_xml = os.listdir(annotations_dir)
     num = len(total_xml)
     filelist = range(num)
@@ -80,11 +88,11 @@ def generate_main():
     for i in filelist:
         name = total_xml[i][:-4] + '\n'
         x = random.random()
-        if x < 0.1:
+        if x < 0.05:
             ftest.write(name)
         else:
             ftrainval.write(name)
-            if 0.1 <= x < 0.2:
+            if 0.05 <= x < 0.1:
                 fval.write(name)
             else:
                 ftrain.write(name)

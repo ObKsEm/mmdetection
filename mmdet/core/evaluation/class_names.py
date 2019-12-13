@@ -89,13 +89,37 @@ def cityscapes_classes():
     ]
 
 
+def character_classes():
+    return [
+        'character'
+    ]
+
+
+def rgcoco_classes():
+    return [
+        '壳牌先锋超凡喜力 SN PLUS 天然气全合成油 0W-20 4L',
+        '壳牌先锋超凡喜力 SN PLUS 天然气全合成油 0W-20 1L',
+        '壳牌先锋超凡喜力 SN PLUS 天然气全合成油 0W-30 4L',
+        '壳牌先锋超凡喜力 SN PLUS 天然气全合成油 0W-30 1L',
+        '壳牌先锋超凡喜力 ACEA C5 天然气全合成油 0W-20 4L',
+        '壳牌先锋超凡喜力 ACEA C5 天然气全合成油 0W-20 1L',
+        '壳牌先锋超凡喜力 ACEA C2 / C3 天然气全合成油 0W-30 4L',
+        '壳牌先锋超凡喜力 ACEA C2 / C3 天然气全合成油 0W-30 1L',
+        "壳牌先锋超凡喜力 ACEA A3 / B4 天然气全合成油 0W-40 4L",
+        "壳牌先锋超凡喜力 ACEA A3 / B4 天然气全合成油 0W-40 1L",
+        '其他'
+    ]
+
+
 dataset_aliases = {
     'voc': ['voc', 'pascal_voc', 'voc07', 'voc12'],
     'imagenet_det': ['det', 'imagenet_det', 'ilsvrc_det'],
     'imagenet_vid': ['vid', 'imagenet_vid', 'ilsvrc_vid'],
     'coco': ['coco', 'mscoco', 'ms_coco'],
     'wider_face': ['WIDERFaceDataset', 'wider_face', 'WDIERFace'],
-    'cityscapes': ['cityscapes']
+    'cityscapes': ['cityscapes'],
+    'character': ['character'],
+    'rgcoco': ['rgcoco']
 }
 
 

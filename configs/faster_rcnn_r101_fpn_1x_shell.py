@@ -1,6 +1,9 @@
 # model settings
 import os
 
+import numpy as np
+import torch
+
 model = dict(
     type='FasterRCNN',
     pretrained='work_dirs/faster_rcnn_r101_fpn_1x_vocsku/epoch_12.pth',
@@ -43,8 +46,8 @@ model = dict(
         target_means=[0., 0., 0., 0.],
         target_stds=[0.1, 0.1, 0.2, 0.2],
         reg_class_agnostic=False,
-        # TODO: use focal head for rcnn
-        loss_cls=dict(type='CrossEntropyLoss', use_sigmoid=False, loss_weight=1.0),
+        loss_cls=dict(
+            type='CrossEntropyLoss', use_sigmoid=False, loss_weight=1.0),
         loss_bbox=dict(type='SmoothL1Loss', beta=1.0, loss_weight=1.0)))
 # model training and testing settings
 train_cfg = dict(
@@ -100,14 +103,14 @@ test_cfg = dict(
     # e.g., nms=dict(type='soft_nms', iou_thr=0.5, min_score=0.05)
 )
 # dataset settings
-dataset_type = 'RoseGoldDataset'
-data_root = 'data/VOCdevkit/shell/2019.11.19'
+dataset_type = 'RGCocoDataset'
+data_root = 'data/coco/shell/2019.11.19/'
 img_norm_cfg = dict(
     mean=[123.675, 116.28, 103.53], std=[58.395, 57.12, 57.375], to_rgb=True)
 train_pipeline = [
     dict(type='LoadImageFromFile'),
     dict(type='LoadAnnotations', with_bbox=True),
-    dict(type='Resize', img_scale=(1000, 600), keep_ratio=True),
+    dict(type='Resize', img_scale=(1333, 800), keep_ratio=True),
     dict(type='RandomFlip', flip_ratio=0.5),
     dict(type='Normalize', **img_norm_cfg),
     dict(type='Pad', size_divisor=32),
@@ -118,7 +121,7 @@ test_pipeline = [
     dict(type='LoadImageFromFile'),
     dict(
         type='MultiScaleFlipAug',
-        img_scale=(1000, 600),
+        img_scale=(1333, 800),
         flip=False,
         transforms=[
             dict(type='Resize', keep_ratio=True),
@@ -133,24 +136,19 @@ data = dict(
     imgs_per_gpu=2,
     workers_per_gpu=2,
     train=dict(
-        type='RepeatDataset',  # to avoid reloading datasets frequently
-        times=1,
-        dataset=dict(
-            type=dataset_type,
-            ann_file=[
-                os.path.join(data_root, 'ImageSets/Main/trainval.txt')
-            ],
-            img_prefix=[data_root],
-            pipeline=train_pipeline)),
+        type=dataset_type,
+        ann_file=os.path.join(data_root, 'annotations/instances_train.json'),
+        img_prefix=data_root + 'train/',
+        pipeline=train_pipeline),
     val=dict(
         type=dataset_type,
-        ann_file=os.path.join(data_root, 'ImageSets/Main/test.txt'),
-        img_prefix=data_root,
-        pipeline=train_pipeline),
+        ann_file=os.path.join(data_root, 'annotations/instances_val.json'),
+        img_prefix=data_root + 'val/',
+        pipeline=test_pipeline),
     test=dict(
         type=dataset_type,
-        ann_file=os.path.join(data_root, 'ImageSets/Main/test.txt'),
-        img_prefix=data_root,
+        ann_file=os.path.join(data_root, 'annotations/instances_test.json'),
+        img_prefix=data_root + 'test/',
         pipeline=test_pipeline))
 # optimizer
 optimizer = dict(type='SGD', lr=0.02, momentum=0.9, weight_decay=0.0001)
@@ -172,10 +170,10 @@ log_config = dict(
     ])
 # yapf:enable
 # runtime settings
-total_epochs = 30
+total_epochs = 12
 dist_params = dict(backend='nccl')
 log_level = 'INFO'
-work_dir = './work_dirs/faster_rcnn_r101_fpn_1x_vocshell_11.25'
+work_dir = './work_dirs/faster_rcnn_r101_fpn_1x_shell_11.19'
 load_from = None
 resume_from = None
 workflow = [('train', 1)]
