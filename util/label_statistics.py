@@ -16,11 +16,11 @@ def parse_xml(xml_path):
 
 
 def main():
-    xml_base_path = "/data/lichengzhi/mmdetection/data/VOCdevkit/shell/2019.11.19/Annotations"
+    xml_base_path = "../data/VOCdevkit/shell/2019.11.19/Annotations"
     # xml_base_path = "/home/lichengzhi/CV_ToolBox/data/2019.8.1/Annotations"
     classes = RoseGoldDataset.CLASSES
     num_classes = float(len(classes))
-    base_freq_classes = 1 / num_classes
+    base_freq_classes = 1.0 / 11
     d = dict()
     for label in classes:
         d[label] = 0.0
@@ -35,10 +35,13 @@ def main():
                 # d[label] = d.get(label, 0) + 1
                 d[label] += 1
     # d = sorted(d.items(), key=lambda x: x[1], reverse=True)
+    x = 0
     with open("data_distribution.txt", "w") as f:
         for k, v in d.items():
             f.write("%s %d %.6f %.6f\n" % (k, v, v / sum, base_freq_classes / (v / sum)))
+            x += base_freq_classes / (v / sum)
     print("sum:", str(sum))
+    print("sigma:", str(x))
 
 
 if __name__ == "__main__":

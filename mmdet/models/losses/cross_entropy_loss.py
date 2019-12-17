@@ -4,12 +4,15 @@ import torch.nn.functional as F
 
 from ..registry import LOSSES
 from .utils import weight_reduce_loss
+import numpy as np
 
 
 def cross_entropy(pred, label, weight=None, reduction='mean', avg_factor=None):
     # element-wise losses
     loss = F.cross_entropy(pred, label, reduction='none')
-
+    # cls_weight = np.array(
+    #     [1, 2.201152, 0.981945, 1.578541, 0.574861, 6.494186, 2.453701, 0.970655, 0.403945, 2.770654, 0.632365, 0.873654])
+    # cls_weight = torch.from_numpy(weight)
     # apply weights and do the reduction
     if weight is not None:
         weight = weight.float()
