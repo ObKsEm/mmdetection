@@ -16,14 +16,13 @@ def parse_xml(xml_path):
 
 
 def main():
-    xml_base_path = "../data/VOCdevkit/shell/2019.11.19/Annotations"
+    xml_base_path = "/home/lichengzhi/mmdetection/data/VOCdevkit/rzx/2020.01.03/Annotations_aug"
     # xml_base_path = "/home/lichengzhi/CV_ToolBox/data/2019.8.1/Annotations"
-    classes = RoseGoldDataset.CLASSES
-    num_classes = float(len(classes))
-    base_freq_classes = 1.0 / 11
+    # classes = RoseGoldDataset.CLASSES
+    # num_classes = float(len(classes))
     d = dict()
-    for label in classes:
-        d[label] = 0.0
+    # for label in classes:
+    #     d[label] = 0.0
     sum = 0
     for r, dirs, files in os.walk(xml_base_path):
         for file in files:
@@ -32,16 +31,19 @@ def main():
             coords = parse_xml(xml_file)
             for label in coords:
                 sum += 1.0
-                # d[label] = d.get(label, 0) + 1
-                d[label] += 1
+                d[label] = d.get(label, 0) + 1
+                # d[label] += 1
     # d = sorted(d.items(), key=lambda x: x[1], reverse=True)
-    x = 0
+    median_freq = 0
+    for k, v in d.items():
+        median_freq += v / sum
+    median_freq /= len(d)
     with open("data_distribution.txt", "w") as f:
         for k, v in d.items():
-            f.write("%s %d %.6f %.6f\n" % (k, v, v / sum, base_freq_classes / (v / sum)))
-            x += base_freq_classes / (v / sum)
+            f.write("%s %d %.6f %.6f\n" % (k, v, v / sum, median_freq / (v / sum)))
+
     print("sum:", str(sum))
-    print("sigma:", str(x))
+    print("median_frequence:", str(median_freq))
 
 
 if __name__ == "__main__":

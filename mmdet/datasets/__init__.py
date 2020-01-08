@@ -15,12 +15,15 @@ from .MidChineseDescription import MidChineseDescriptionDataset
 from .rosegold import RoseGoldDataset, RoseGoldMidDataset
 from .character import CharacterDataset
 from .rgcoco import RGCocoDataset
+from .rzx import RZXDataset
+from .rzxcoco import RZXCocoDataset
 __all__ = [
     'CustomDataset', 'XMLDataset', 'CocoDataset', 'VOCDataset',
     'CityscapesDataset', 'GroupSampler', 'DistributedGroupSampler',
     'build_dataloader', 'ConcatDataset', 'RepeatDataset',
     'WIDERFaceDataset', 'DATASETS', 'build_dataset',
     'ShellDataset', 'SkuDataset', 'UavDataset', 'MidChineseDescription',
-    'RoseGoldDataset', 'RoseGoldMidDataset', 'CharacterDataset', 'RGCocoDataset'
+    'RoseGoldDataset', 'RoseGoldMidDataset', 'CharacterDataset', 'RGCocoDataset',
+    'RZXDataset', 'RZXCocoDataset'
 
 ]
