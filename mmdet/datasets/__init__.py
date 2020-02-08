@@ -17,6 +17,7 @@ from .character import CharacterDataset
 from .rgcoco import RGCocoDataset
 from .rzx import RZXDataset
 from .rzxcoco import RZXCocoDataset
+from .yccoco import YCCocoDataset
 __all__ = [
     'CustomDataset', 'XMLDataset', 'CocoDataset', 'VOCDataset',
     'CityscapesDataset', 'GroupSampler', 'DistributedGroupSampler',
@@ -24,6 +25,6 @@ __all__ = [
     'WIDERFaceDataset', 'DATASETS', 'build_dataset',
     'ShellDataset', 'SkuDataset', 'UavDataset', 'MidChineseDescription',
     'RoseGoldDataset', 'RoseGoldMidDataset', 'CharacterDataset', 'RGCocoDataset',
-    'RZXDataset', 'RZXCocoDataset'
+    'RZXDataset', 'RZXCocoDataset', 'YCCocoDataset'
 
 ]
