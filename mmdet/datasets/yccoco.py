@@ -8,8 +8,7 @@ from .registry import DATASETS
 @DATASETS.register_module
 class YCCocoDataset(CustomDataset):
     CLASSES = (
-        '0',
-        '1',
+        'text',
     )
 
     def load_annotations(self, ann_file):

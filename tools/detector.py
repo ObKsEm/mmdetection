@@ -132,23 +132,23 @@ def main():
     model.CLASSES = YCCocoDataset.CLASSES
     # test a single image and show the results
 
-    # img = mmcv.imread(args.image)
-
-    # result = inference_detector(model, img)
-    # show_result(img, result, model.CLASSES, score_thr=0, out_file=args.out, show=False)
-    # show_result_in_Chinese(img, result, model.CLASSES, score_thr=0, out_file=args.out)
+    img = mmcv.imread(args.image)
+    #
+    result = inference_detector(model, img)
+    # show_result(img, result, model.CLASSES, score_thr=0.5, out_file=args.out, show=False)
+    show_result_in_Chinese(img, result, model.CLASSES, score_thr=0.1, out_file=args.out)
     #
     # test a list of images and write the results to image files
 
-    imgs = []
-    for r, _, files in os.walk("./demo/yuanchu"):
-        for file in files:
-            imgs.append(os.path.join(r, file))
-    for img in imgs:
-        pos = img.rfind('/')
-        imgname = img[pos + 1:]
-        result = inference_detector(model, img)
-        show_result_in_Chinese(img, result, model.CLASSES, score_thr=0.3, out_file='result_{}'.format(imgname))
+    # imgs = []
+    # for r, _, files in os.walk("./demo/yuanchu/demo"):
+    #     for file in files:
+    #         imgs.append(os.path.join(r, file))
+    # for img in imgs:
+    #     pos = img.rfind('/')
+    #     imgname = img[pos + 1:]
+    #     result = inference_detector(model, img)
+    #     show_result_in_Chinese(img, result, model.CLASSES, score_thr=0.5, out_file='result_{}'.format(imgname))
 
 
 if __name__ == "__main__":
