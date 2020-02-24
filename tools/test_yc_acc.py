@@ -20,9 +20,9 @@ import xml.etree.ElementTree as ET
 
 TABLE_HEAD = ["名称", "样本个数", "tp", "fp", "fn", "precision", "recall"]
 
-test_img_path = "/home/lichengzhi/mmdetection/data/VOCdevkit/yuanchu/2020.02.08/JPEGImages"
-test_xml_path = "/home/lichengzhi/mmdetection/data/VOCdevkit/yuanchu/2020.02.08/Annotations"
-test_path = "/home/lichengzhi/mmdetection/data/VOCdevkit/yuanchu/2020.02.08/ImageSets/Main/test.txt"
+test_img_path = "/home/lichengzhi/mmdetection/data/VOCdevkit/yuanchu/2020.02.21/JPEGImages"
+test_xml_path = "/home/lichengzhi/mmdetection/data/VOCdevkit/yuanchu/2020.02.21/Annotations"
+test_path = "/home/lichengzhi/mmdetection/data/VOCdevkit/yuanchu/2020.02.21/ImageSets/Main/test.txt"
 
 
 def parse_args():
@@ -78,13 +78,13 @@ def get_result(result, score_thr=0.5):
     assert labels.ndim == 1
     assert bboxes.shape[0] == labels.shape[0]
     assert bboxes.shape[1] == 4 or bboxes.shape[1] == 5
-    if score_thr > 0:
-        assert bboxes.shape[1] == 5
-        scores = bboxes[:, -1]
-        inds = scores > score_thr
-        bboxes = bboxes[inds, :]
-        labels = labels[inds]
-        scores = scores[inds]
+    # if score_thr > 0:
+    assert bboxes.shape[1] == 5
+    scores = bboxes[:, -1]
+    inds = scores > score_thr
+    bboxes = bboxes[inds, :]
+    labels = labels[inds]
+    scores = scores[inds]
 
     test_bboxes = nms(bboxes, 0.5)
     new_bboxes = [bboxes[i] for i in test_bboxes[1]]
@@ -134,7 +134,7 @@ def main():
                     gt_cls_num[cls2id[label]] += 1
                     tot += 1
                 result = inference_detector(model, img)
-                det_bboxes, det_labels, det_scores = get_result(result, score_thr=0.3)
+                det_bboxes, det_labels, det_scores = get_result(result, score_thr=0.0)
                 ious = bbox_overlaps(np.array(det_bboxes), np.array(gt_bboxes))
                 ious_max = ious.max(axis=1)
                 ious_argmax = ious.argmax(axis=1)

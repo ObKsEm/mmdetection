@@ -18,13 +18,14 @@ from mmdet.apis import init_detector, inference_detector, show_result
 from mmdet.datasets.shell import ShellDataset
 from mmdet.datasets.sku import SkuDataset
 from mmdet.datasets.rosegold import RoseGoldDataset
+from mmdet.datasets.UltraAB import UltraABDataset
 import xml.etree.ElementTree as ET
 
-TABLE_HEAD = ["名称", "MID", "MID English description", "MID Chinese description", "样本个数", "识别个数", "准确率"]
+TABLE_HEAD = ["名称", "样本个数", "tp", "fp", "fn", "precision", "recall"]
 
-test_img_path = "/home/lichengzhi/mmdetection/data/VOCdevkit/shell/2019.10.25/JPEGImages"
-test_xml_path = "/home/lichengzhi/mmdetection/data/VOCdevkit/shell/2019.10.25/Annotations"
-test_path = "/home/lichengzhi/mmdetection/data/VOCdevkit/shell/2019.10.25/ImageSets/Main/test.txt"
+test_img_path = "/home/lichengzhi/mmdetection/data/VOCdevkit/shell/2020.02.14/JPEGImages"
+test_xml_path = "/home/lichengzhi/mmdetection/data/VOCdevkit/shell/2020.02.14/Annotations"
+test_path = "/home/lichengzhi/mmdetection/data/VOCdevkit/shell/2020.02.14/ImageSets/Main/test.txt"
 
 
 def parse_args():
@@ -125,16 +126,17 @@ def main():
     # build the model from a config file and a checkpoint file
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model = init_detector(config_file, checkpoint_file, device=device)
-    model.CLASSES = RoseGoldDataset.CLASSES
+    model.CLASSES = UltraABDataset.CLASSES
     cls2id = dict(zip(model.CLASSES, range(0, len(model.CLASSES))))
     # test a single image and show the results
     acc = 0.0
     tot = 0.0
     gt_cls_num = np.zeros((len(model.CLASSES)))
-    det_cls_num = np.zeros((len(model.CLASSES)))
+    tp = np.zeros((len(model.CLASSES)))
+    fp = np.zeros((len(model.CLASSES)))
+    fn = np.zeros((len(model.CLASSES)))
+    tn = np.zeros((len(model.CLASSES)))
     with open(test_path, "r") as f:
-        delta_gt_cls_num = np.zeros((len(model.CLASSES)))
-        delta_det_cls_num = np.zeros((len(model.CLASSES)))
         filenames = f.readlines()
         for filename in filenames:
             img_file = filename.strip() + ".jpg"
@@ -150,14 +152,14 @@ def main():
                 gt_labels = [coord[4] for coord in coords]
                 for label in gt_labels:
                     gt_cls_num[cls2id[label]] += 1
-                    delta_gt_cls_num[cls2id[label]] += 1
-                tot += len(gt_bboxes)
+                    tot += 1
                 result = inference_detector(model, img)
                 det_bboxes, det_labels, det_scores = get_result(result, score_thr=0.5)
                 ious = bbox_overlaps(np.array(det_bboxes), np.array(gt_bboxes))
                 ious_max = ious.max(axis=1)
                 ious_argmax = ious.argmax(axis=1)
                 gt_matched_det = np.ones((len(gt_bboxes))) * -1
+                det_matched_gt = np.ones((len(det_bboxes))) * -1
                 gt_matched_scores = np.zeros((len(gt_bboxes)))
                 for i in range(0, len(det_bboxes)):
                     if ious_max[i] > 0.5:
@@ -165,86 +167,97 @@ def main():
                         if gt_matched_scores[target_gt] < det_scores[i]:
                             gt_matched_scores[target_gt] = det_scores[i]
                             gt_matched_det[target_gt] = i
-                for i in range(0, len(gt_matched_det)):
-                    det = int(gt_matched_det[i])
-                    if det > -1:
-                        if model.CLASSES[det_labels[det]] == gt_labels[i]:
-                            det_cls_num[det_labels[det]] += 1
-                            delta_det_cls_num[det_labels[det]] += 1
+                            det_matched_gt[i] = target_gt
+                    else:
+                        fp[det_labels[i]] += 1
+
+                for i in range(0, len(det_matched_gt)):
+                    gt = int(det_matched_gt[i])
+                    if gt > -1:
+                        if model.CLASSES[det_labels[i]] == gt_labels[gt]:
+                            tp[det_labels[i]] += 1
                             acc += 1
-                assert (delta_det_cls_num <= delta_gt_cls_num).all()
-    print("total gt: %d,  det: %d" % (tot, acc))
-    print("accuracy: %f" % (acc / tot))
-    mat = np.zeros((len(model.CLASSES), 4))
+                        else:
+                            fp[det_labels[i]] += 1
+
     for i in range(0, len(model.CLASSES)):
-        print("%s: %.0f gt, %.0f det, accuracy: %.6f" %
-              (model.CLASSES[i], gt_cls_num[i], det_cls_num[i], det_cls_num[i] / gt_cls_num[i] if gt_cls_num[i] > 0 else 0))
+        fn[i] = gt_cls_num[i] - tp[i]
+        tn[i] = gt_cls_num.sum() - fn[i] - tp[i] - fp[i]
+
+    print("accuracy: %f" % (acc / tot))
+    mat = np.zeros((len(model.CLASSES), len(TABLE_HEAD)))
+
+    for i in range(0, len(model.CLASSES)):
         mat[i][0] = i
         mat[i][1] = gt_cls_num[i]
-        mat[i][2] = det_cls_num[i]
-        mat[i][3] = det_cls_num[i] / gt_cls_num[i] if gt_cls_num[i] > 0 else 0
-    print("----------------------------------------------------")
-    mat = mat[(-mat[:, 1]).argsort()]
-    inds = mat[:, 1] > 100
-    pos = mat[inds]
-    neg = mat[~inds]
-    pos = pos[(-pos[:, 3]).argsort()]
-    neg = neg[(-neg[:, 3]).argsort()]
-    mmap = load_name2mid("Name2MID.xlsx")
-    for i in range(0, len(pos)):
-        item = pos[i]
-        label = int(item[0])
-        gt = int(item[1])
-        det = int(item[2])
-        acc = item[3]
-        print("%s: %.0f gt, %.0f det, %.6f accuracy" % (model.CLASSES[label], gt, det, acc))
-    print("----------------------------------------------------")
-    for i in range(0, len(neg)):
-        item = neg[i]
-        label = int(item[0])
-        gt = int(item[1])
-        det = int(item[2])
-        acc = item[3]
-        print("%s: %.0f gt, %.0f det, %.6f accuracy" % (model.CLASSES[label], gt, det, acc))
+        mat[i][2] = tp[i]
+        mat[i][3] = fp[i]
+        mat[i][4] = fn[i]
+        mat[i][5] = tp[i] / (tp[i] + fp[i])
+        mat[i][6] = tp[i] / (tp[i] + fn[i])
+        print("%s: %.0f gt, %.0f det, %.0f tp, precision: %.6f, recall: %.6f" %
+              (model.CLASSES[i], gt_cls_num[i], tp[i] + fp[i], tp[i], tp[i] / (tp[i] + fp[i]), tp[i] / (tp[i] + fn[i])))
 
-    workbook = openpyxl.Workbook("statistics.xlsx")
-    pos_sheet = workbook.create_sheet("positive")
-    pos_sheet.append(TABLE_HEAD)
-    for row in range(0, len(pos)):
-        item = pos[row]
-        label = model.CLASSES[int(item[0])]
-        gt = int(item[1])
-        det = int(item[2])
-        acc = item[3]
-        # pos_sheet.cell(row=row + 2, column=1, value=label)
-        # pos_sheet.cell(row=row + 2, column=2, value=mmap[label]["MID"])
-        # pos_sheet.cell(row=row + 2, column=3, value=mmap[label]["ENG"])
-        # pos_sheet.cell(row=row + 2, column=4, value=mmap[label]["CHN"])
-        # pos_sheet.cell(row=row + 2, column=5, value="%.0f" % gt)
-        # pos_sheet.cell(row=row + 2, column=6, value="%.0f" % det)
-        # pos_sheet.cell(row=row + 2, column=7, value="%.6f" % acc)
-        pos_sheet.append([label, mmap[label]["MID"], mmap[label]["ENG"], mmap[label]["CHN"],
-                          "%.0f" % gt, "%.0f" % det, "%.6f" % acc])
+    # print("----------------------------------------------------")
+    # mat = mat[(-mat[:, 1]).argsort()]
+    # inds = mat[:, 1] > 100
+    # pos = mat[inds]
+    # neg = mat[~inds]
+    # pos = pos[(-pos[:, 3]).argsort()]
+    # neg = neg[(-neg[:, 3]).argsort()]
+    # mmap = load_name2mid("Name2MID.xlsx")
+    # for i in range(0, len(pos)):
+    #     item = pos[i]
+    #     label = int(item[0])
+    #     gt = int(item[1])
+    #     det = int(item[2])
+    #     acc = item[3]
+    #     print("%s: %.0f gt, %.0f det, %.6f accuracy" % (model.CLASSES[label], gt, det, acc))
+    # print("----------------------------------------------------")
+    # for i in range(0, len(neg)):
+    #     item = neg[i]
+    #     label = int(item[0])
+    #     gt = int(item[1])
+    #     det = int(item[2])
+    #     acc = item[3]
+    #     print("%s: %.0f gt, %.0f det, %.6f accuracy" % (model.CLASSES[label], gt, det, acc))
+    # #
+    # workbook = openpyxl.Workbook("statistics.xlsx")
+    # pos_sheet = workbook.create_sheet("positive")
+    # pos_sheet.append(TABLE_HEAD)
+    # for row in range(0, len(pos)):
+    #     item = pos[row]
+    #     label = model.CLASSES[int(item[0])]
+    #     gt = int(item[1])
+    #     det = int(item[2])
+    #     acc = item[3]
+    #     pos_sheet.append([label, mmap[label]["MID"], mmap[label]["ENG"], mmap[label]["CHN"],
+    #                       "%.0f" % gt, "%.0f" % det, "%.6f" % acc])
+    #
+    # neg_sheet = workbook.create_sheet("negative")
+    # neg_sheet.append(TABLE_HEAD)
+    # for row in range(0, len(neg)):
+    #     item = neg[row]
+    #     label = model.CLASSES[int(item[0])]
+    #     gt = int(item[1])
+    #     det = int(item[2])
+    #     acc = item[3]
+    #     neg_sheet.append([label, mmap[label]["MID"], mmap[label]["ENG"], mmap[label]["CHN"],
+    #                       "%.0f" % gt, "%.0f" % det, "%.6f" % acc])
+    #
+    # workbook.save("statistics.xlsx")
 
-    neg_sheet = workbook.create_sheet("negative")
-    neg_sheet.append(TABLE_HEAD)
-    for row in range(0, len(neg)):
-        item = neg[row]
-        label = model.CLASSES[int(item[0])]
-        gt = int(item[1])
-        det = int(item[2])
-        acc = item[3]
-        # neg_sheet.cell(row=row + 2, column=1, value=label)
-        # neg_sheet.cell(row=row + 2, column=2, value=mmap[label]["MID"])
-        # neg_sheet.cell(row=row + 2, column=3, value=mmap[label]["ENG"])
-        # neg_sheet.cell(row=row + 2, column=4, value=mmap[label]["CHN"])
-        # neg_sheet.cell(row=row + 2, column=5, value="%.0f" % gt)
-        # neg_sheet.cell(row=row + 2, column=6, value="%.0f" % det)
-        # neg_sheet.cell(row=row + 2, column=7, value="%.6f" % acc)
-        neg_sheet.append([label, mmap[label]["MID"], mmap[label]["ENG"], mmap[label]["CHN"],
-                          "%.0f" % gt, "%.0f" % det, "%.6f" % acc])
+    if os.path.exists("shell_statistics.xlsx"):
+        os.remove("shell_statistics.xlsx")
+    workbook = openpyxl.Workbook("shell_statistics.xlsx")
+    sheet = workbook.create_sheet("sheet")
+    sheet.append(TABLE_HEAD)
+    for i in range(0, len(model.CLASSES)):
+        label = model.CLASSES[i]
+        sheet.append([label, "%.0f" % gt_cls_num[i], "%.0f" % tp[i], "%.0f" % fp[i], "%.0f" % fn[i],
+                      "%.6f" % (tp[i] / (tp[i] + fp[i])), "%.6f" % (tp[i] / (tp[i] + fn[i]))])
 
-    workbook.save("statistics.xlsx")
+    workbook.save("shell_statistics.xlsx")
 
 
 if __name__ == "__main__":

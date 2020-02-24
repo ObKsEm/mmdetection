@@ -136,12 +136,12 @@ def main():
     #
     result = inference_detector(model, img)
     # show_result(img, result, model.CLASSES, score_thr=0.5, out_file=args.out, show=False)
-    show_result_in_Chinese(img, result, model.CLASSES, score_thr=0.1, out_file=args.out)
+    show_result_in_Chinese(img, result, model.CLASSES, score_thr=0.0, out_file=args.out)
     #
     # test a list of images and write the results to image files
 
     # imgs = []
-    # for r, _, files in os.walk("./demo/yuanchu/demo"):
+    # for r, _, files in os.walk("./demo/shell/demo"):
     #     for file in files:
     #         imgs.append(os.path.join(r, file))
     # for img in imgs:
