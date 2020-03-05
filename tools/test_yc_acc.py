@@ -20,9 +20,9 @@ import xml.etree.ElementTree as ET
 
 TABLE_HEAD = ["名称", "样本个数", "tp", "fp", "fn", "precision", "recall"]
 
-test_img_path = "/home/lichengzhi/mmdetection/data/VOCdevkit/yuanchu/2020.02.21/JPEGImages"
-test_xml_path = "/home/lichengzhi/mmdetection/data/VOCdevkit/yuanchu/2020.02.21/Annotations"
-test_path = "/home/lichengzhi/mmdetection/data/VOCdevkit/yuanchu/2020.02.21/ImageSets/Main/test.txt"
+test_img_path = "/home/lichengzhi/mmdetection/data/VOCdevkit/yuanchu/2020.02.25/JPEGImages"
+test_xml_path = "/home/lichengzhi/mmdetection/data/VOCdevkit/yuanchu/2020.02.25/Annotations"
+test_path = "/home/lichengzhi/mmdetection/data/VOCdevkit/yuanchu/2020.02.25/ImageSets/Main/test.txt"
 
 
 def parse_args():
@@ -134,7 +134,7 @@ def main():
                     gt_cls_num[cls2id[label]] += 1
                     tot += 1
                 result = inference_detector(model, img)
-                det_bboxes, det_labels, det_scores = get_result(result, score_thr=0.0)
+                det_bboxes, det_labels, det_scores = get_result(result, score_thr=0.5)
                 ious = bbox_overlaps(np.array(det_bboxes), np.array(gt_bboxes))
                 ious_max = ious.max(axis=1)
                 ious_argmax = ious.argmax(axis=1)
@@ -159,6 +159,7 @@ def main():
                             acc += 1
                         else:
                             fp[det_labels[i]] += 1
+
     for i in range(0, len(model.CLASSES)):
         fn[i] = gt_cls_num[i] - tp[i]
         tn[i] = gt_cls_num.sum() - fn[i] - tp[i] - fp[i]

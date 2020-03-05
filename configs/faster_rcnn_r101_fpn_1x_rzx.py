@@ -39,7 +39,7 @@ model = dict(
         in_channels=256,
         fc_out_channels=1024,
         roi_feat_size=7,
-        num_classes=15,
+        num_classes=31,
         target_means=[0., 0., 0., 0.],
         target_stds=[0.1, 0.1, 0.2, 0.2],
         reg_class_agnostic=False,
@@ -101,7 +101,7 @@ test_cfg = dict(
 )
 # dataset settings
 dataset_type = 'RZXCocoDataset'
-data_root = 'data/coco/rzx/2020.01.03'
+data_root = 'data/coco/rzx/2020.02.29'
 img_norm_cfg = dict(
     mean=[123.675, 116.28, 103.53], std=[58.395, 57.12, 57.375], to_rgb=True)
 train_pipeline = [
@@ -148,7 +148,7 @@ data = dict(
         img_prefix=os.path.join(data_root, 'test'),
         pipeline=test_pipeline))
 # optimizer
-optimizer = dict(type='SGD', lr=0.01, momentum=0.9, weight_decay=0.0001)
+optimizer = dict(type='SGD', lr=0.005, momentum=0.9, weight_decay=0.0001)
 optimizer_config = dict(grad_clip=dict(max_norm=35, norm_type=2))
 # learning policy
 lr_config = dict(
@@ -170,7 +170,7 @@ log_config = dict(
 total_epochs = 30
 dist_params = dict(backend='nccl')
 log_level = 'INFO'
-work_dir = './work_dirs/faster_rcnn_r101_fpn_1x_rzx/2020.01.07'
+work_dir = './work_dirs/faster_rcnn_r101_fpn_1x_rzx/2020.02.29'
 load_from = None
 resume_from = None
 workflow = [('train', 1)]

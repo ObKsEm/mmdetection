@@ -16,7 +16,7 @@ def parse_xml(xml_path):
 
 
 def main():
-    xml_base_path = "/home/lichengzhi/mmdetection/data/VOCdevkit/shell/2020.02.14/Annotations_ori"
+    xml_base_path = "/home/lichengzhi/mmdetection/data/VOCdevkit/rzx/2020.02.29/Annotations_ori"
     # classes = RoseGoldDataset.CLASSES
     # num_classes = float(len(classes))
     d = dict()

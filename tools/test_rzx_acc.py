@@ -16,15 +16,13 @@ from mmdet.ops import nms
 
 from mmdet.apis import init_detector, inference_detector, show_result
 from mmdet.datasets.rzxcoco import RZXCocoDataset
-from mmdet.datasets.sku import SkuDataset
-from mmdet.datasets.rosegold import RoseGoldDataset
 import xml.etree.ElementTree as ET
 
 TABLE_HEAD = ["名称", "样本个数", "tp", "fp", "fn", "precision", "recall"]
 
-test_img_path = "/home/lichengzhi/mmdetection/data/VOCdevkit/rzx/2020.01.03/JPEGImages"
-test_xml_path = "/home/lichengzhi/mmdetection/data/VOCdevkit/rzx/2020.01.03/Annotations"
-test_path = "/home/lichengzhi/mmdetection/data/VOCdevkit/rzx/2020.01.03/ImageSets/Main/test.txt"
+test_img_path = "/home/lichengzhi/mmdetection/data/VOCdevkit/rzx/2020.02.29/JPEGImages"
+test_xml_path = "/home/lichengzhi/mmdetection/data/VOCdevkit/rzx/2020.02.29/Annotations"
+test_path = "/home/lichengzhi/mmdetection/data/VOCdevkit/rzx/2020.02.29/ImageSets/Main/test.txt"
 
 
 def parse_args():
