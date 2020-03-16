@@ -20,7 +20,7 @@ model = dict(
         num_outs=5),
     bbox_head=dict(
         type='RetinaHead',
-        num_classes=15,
+        num_classes=34,
         in_channels=256,
         stacked_convs=4,
         feat_channels=256,
@@ -56,7 +56,7 @@ test_cfg = dict(
     max_per_img=100)
 # dataset settings
 dataset_type = 'RZXCocoDataset'
-data_root = 'data/coco/rzx/2020.01.03'
+data_root = 'data/coco/rzx/2020.03.12'
 img_norm_cfg = dict(
     mean=[123.675, 116.28, 103.53], std=[58.395, 57.12, 57.375], to_rgb=True)
 train_pipeline = [
@@ -103,7 +103,7 @@ data = dict(
         img_prefix=os.path.join(data_root, 'test/'),
         pipeline=test_pipeline))
 # optimizer
-optimizer = dict(type='SGD', lr=0.01, momentum=0.9, weight_decay=0.0001)
+optimizer = dict(type='SGD', lr=0.005, momentum=0.9, weight_decay=0.0001)
 optimizer_config = dict(grad_clip=dict(max_norm=35, norm_type=2))
 # learning policy
 lr_config = dict(
@@ -126,7 +126,7 @@ total_epochs = 30
 device_ids = range(8)
 dist_params = dict(backend='nccl')
 log_level = 'INFO'
-work_dir = './work_dirs/retinanet_r101_fpn_1x_rzx_2020.01.06'
+work_dir = './work_dirs/retinanet_r101_fpn_1x_rzx_/2020.03.12'
 load_from = None
 resume_from = None
 workflow = [('train', 1)]

@@ -73,8 +73,8 @@ def solve_img():
 
 
 def generate_main():
-    main_dir = "/home/lichengzhi/mmdetection/data/VOCdevkit/rzx/2020.02.29/ImageSets/Main"
-    annotations_dir = "/home/lichengzhi/mmdetection/data/VOCdevkit/rzx/2020.02.29/Annotations"
+    main_dir = "/home/lichengzhi/mmdetection/data/VOCdevkit/rzx/2020.03.12/ImageSets/Main"
+    annotations_dir = "/home/lichengzhi/mmdetection/data/VOCdevkit/rzx/2020.03.12/Annotations"
     if not os.path.exists(main_dir):
         os.makedirs(main_dir)
     total_xml = os.listdir(annotations_dir)
