@@ -16,7 +16,7 @@ def parse_xml(xml_path):
 
 
 def main():
-    xml_base_path = "/home/lichengzhi/mmdetection/data/VOCdevkit/rzx/2020.03.12/Annotations"
+    xml_base_path = "/home/lichengzhi/mmdetection/data/VOCdevkit/shell/2019.11.19/Annotations_bailian"
     # classes = RoseGoldDataset.CLASSES
     # num_classes = float(len(classes))
     d = dict()
@@ -32,13 +32,14 @@ def main():
                 sum += 1.0
                 d[label] = d.get(label, 0) + 1
                 # d[label] += 1
-    # d = sorted(d.items(), key=lambda x: x[1], reverse=True)
+    d = sorted(d.items(), key=lambda x: x[0])
+    print(d)
     median_freq = 0
-    for k, v in d.items():
+    for (k, v) in d:
         median_freq += v / sum
     median_freq /= len(d)
     with open("data_distribution.txt", "w") as f:
-        for k, v in d.items():
+        for (k, v) in d:
             f.write("%s %d %.6f %.6f\n" % (k, v, v / sum, median_freq / (v / sum)))
 
     print("sum:", str(sum))

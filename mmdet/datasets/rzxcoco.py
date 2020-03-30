@@ -16,6 +16,8 @@ class RZXCocoDataset(CustomDataset):
         'FB_ICON_000005',
         'FB_ICON_000006',
         'FB_ICON_000007',
+        'FB_ICON_000008',
+        'FB_ICON_000009',
         'FB_ICON_000011',
         'FB_ICON_000012',
         'FB_ICON_000013',
@@ -38,9 +40,26 @@ class RZXCocoDataset(CustomDataset):
         'FB_ICON_000034',
         'FB_ICON_000035',
         'FB_ICON_000036',
+        'FB_ICON_000037',
         'FB_ICON_000043',
         'FB_ICON_000044',
-        'FB_ICON_000045'
+        'FB_ICON_000045',
+        'FB_ICON_000046',
+        'FB_ICON_000047',
+        'FB_ICON_000048',
+        'FB_ICON_000049',
+        'FB_ICON_000050',
+        'FB_ICON_000051',
+        'FB_ICON_000052',
+        'FB_ICON_000053',
+        'FB_ICON_000054',
+        'FB_ICON_000055',
+        'FB_ICON_000056',
+        'FB_ICON_000057',
+        'FB_ICON_000058',
+        'FB_ICON_000059',
+        'FB_ICON_000060',
+        'FB_ICON_000061'
     )
 
     def load_annotations(self, ann_file):

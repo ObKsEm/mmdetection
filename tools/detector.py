@@ -23,6 +23,7 @@ from mmdet.datasets.character import CharacterDataset
 from mmdet.datasets.rgcoco import RGCocoDataset
 from mmdet.datasets.rzxcoco import RZXCocoDataset
 from mmdet.datasets.yccoco import YCCocoDataset
+from mmdet.datasets.UltraAB import UltraABDataset
 
 font = ImageFont.truetype('fzqh.ttf', 20)
 
@@ -129,7 +130,7 @@ def main():
     # build the model from a config file and a checkpoint file
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     model = init_detector(config_file, checkpoint_file, device=device)
-    model.CLASSES = YCCocoDataset.CLASSES
+    model.CLASSES = UltraABDataset.CLASSES
     # test a single image and show the results
 
     img = mmcv.imread(args.image)
