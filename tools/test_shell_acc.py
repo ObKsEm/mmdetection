@@ -23,9 +23,9 @@ import xml.etree.ElementTree as ET
 
 TABLE_HEAD = ["名称", "样本个数", "tp", "fp", "fn", "precision", "recall"]
 
-test_img_path = "/home/lichengzhi/mmdetection/data/VOCdevkit/shell/2020.02.14/JPEGImages"
-test_xml_path = "/home/lichengzhi/mmdetection/data/VOCdevkit/shell/2020.02.14/Annotations"
-test_path = "/home/lichengzhi/mmdetection/data/VOCdevkit/shell/2020.02.14/ImageSets/Main/test.txt"
+test_img_path = "/home/lichengzhi/mmdetection/data/VOCdevkit/shell/2020.03.25/JPEGImages"
+test_xml_path = "/home/lichengzhi/mmdetection/data/VOCdevkit/shell/2020.03.25/Annotations"
+test_path = "/home/lichengzhi/mmdetection/data/VOCdevkit/shell/2020.03.25/ImageSets/Main/test.txt"
 
 
 def parse_args():
@@ -127,15 +127,22 @@ def main():
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model = init_detector(config_file, checkpoint_file, device=device)
     model.CLASSES = UltraABDataset.CLASSES
-    cls2id = dict(zip(model.CLASSES, range(0, len(model.CLASSES))))
+    # cls2id = dict(zip(model.CLASSES, range(0, len(model.CLASSES))))
+    cls2id = {'4L': 0, '1L': 1}
+    id2cls = {0: '4L', 1: '1L'}
     # test a single image and show the results
     acc = 0.0
     tot = 0.0
-    gt_cls_num = np.zeros((len(model.CLASSES)))
-    tp = np.zeros((len(model.CLASSES)))
-    fp = np.zeros((len(model.CLASSES)))
-    fn = np.zeros((len(model.CLASSES)))
-    tn = np.zeros((len(model.CLASSES)))
+    # gt_cls_num = np.zeros((len(model.CLASSES)))
+    # tp = np.zeros((len(model.CLASSES)))
+    # fp = np.zeros((len(model.CLASSES)))
+    # fn = np.zeros((len(model.CLASSES)))
+    # tn = np.zeros((len(model.CLASSES)))
+    gt_cls_num = np.zeros(2)
+    tp = np.zeros(2)
+    fp = np.zeros(2)
+    fn = np.zeros(2)
+    tn = np.zeros(2)
     with open(test_path, "r") as f:
         filenames = f.readlines()
         for filename in filenames:
@@ -151,8 +158,10 @@ def main():
                 gt_bboxes = [coord[:4] for coord in coords]
                 gt_labels = [coord[4] for coord in coords]
                 for label in gt_labels:
-                    gt_cls_num[cls2id[label]] += 1
-                    tot += 1
+                    if label != '其他':
+                        # gt_cls_num[cls2id[label]] += 1
+                        gt_cls_num[cls2id[label[-2:]]] += 1
+                        tot += 1
                 result = inference_detector(model, img)
                 det_bboxes, det_labels, det_scores = get_result(result, score_thr=0.5)
                 ious = bbox_overlaps(np.array(det_bboxes), np.array(gt_bboxes))
@@ -162,32 +171,38 @@ def main():
                 det_matched_gt = np.ones((len(det_bboxes))) * -1
                 gt_matched_scores = np.zeros((len(gt_bboxes)))
                 for i in range(0, len(det_bboxes)):
-                    if ious_max[i] > 0.5:
+                    if ious_max[i] > 0.5 and model.CLASSES[det_labels[i]] != '其他':
                         target_gt = ious_argmax[i]
                         if gt_matched_scores[target_gt] < det_scores[i]:
                             gt_matched_scores[target_gt] = det_scores[i]
                             gt_matched_det[target_gt] = i
                             det_matched_gt[i] = target_gt
-                    else:
-                        fp[det_labels[i]] += 1
-
+                    # else:
+                    elif model.CLASSES[det_labels[i]] != '其他':
+                        # fp[det_labels[i]] += 1
+                        fp[cls2id[model.CLASSES[det_labels[i]][-2:]]] += 1
                 for i in range(0, len(det_matched_gt)):
                     gt = int(det_matched_gt[i])
-                    if gt > -1:
-                        if model.CLASSES[det_labels[i]] == gt_labels[gt]:
-                            tp[det_labels[i]] += 1
+                    if gt > -1 and model.CLASSES[det_labels[i]] != '其他':
+                        # if model.CLASSES[det_labels[i]] == gt_labels[gt]:
+                        if model.CLASSES[det_labels[i]][-2:] == gt_labels[gt][-2:]:
+                            tp[cls2id[model.CLASSES[det_labels[i]][-2:]]] += 1
                             acc += 1
-                        else:
-                            fp[det_labels[i]] += 1
+                        # else:
+                        elif model.CLASSES[det_labels[i]] != '其他':
+                            fp[cls2id[model.CLASSES[det_labels[i]][-2:]]] += 1
 
-    for i in range(0, len(model.CLASSES)):
+    # for i in range(0, len(model.CLASSES)):
+    for i in range(0, 2):
         fn[i] = gt_cls_num[i] - tp[i]
         tn[i] = gt_cls_num.sum() - fn[i] - tp[i] - fp[i]
 
     print("accuracy: %f" % (acc / tot))
-    mat = np.zeros((len(model.CLASSES), len(TABLE_HEAD)))
+    # mat = np.zeros((len(model.CLASSES), len(TABLE_HEAD)))
+    mat = np.zeros((2, len(TABLE_HEAD)))
 
-    for i in range(0, len(model.CLASSES)):
+    # for i in range(0, len(model.CLASSES)):
+    for i in range(0, 2):
         mat[i][0] = i
         mat[i][1] = gt_cls_num[i]
         mat[i][2] = tp[i]
@@ -195,8 +210,10 @@ def main():
         mat[i][4] = fn[i]
         mat[i][5] = tp[i] / (tp[i] + fp[i])
         mat[i][6] = tp[i] / (tp[i] + fn[i])
+        # print("%s: %.0f gt, %.0f det, %.0f tp, precision: %.6f, recall: %.6f" %
+        #       (model.CLASSES[i], gt_cls_num[i], tp[i] + fp[i], tp[i], tp[i] / (tp[i] + fp[i]), tp[i] / (tp[i] + fn[i])))
         print("%s: %.0f gt, %.0f det, %.0f tp, precision: %.6f, recall: %.6f" %
-              (model.CLASSES[i], gt_cls_num[i], tp[i] + fp[i], tp[i], tp[i] / (tp[i] + fp[i]), tp[i] / (tp[i] + fn[i])))
+                (id2cls[i], gt_cls_num[i], tp[i] + fp[i], tp[i], tp[i] / (tp[i] + fp[i]), tp[i] / (tp[i] + fn[i])))
 
     # print("----------------------------------------------------")
     # mat = mat[(-mat[:, 1]).argsort()]
@@ -252,8 +269,10 @@ def main():
     workbook = openpyxl.Workbook("shell_statistics.xlsx")
     sheet = workbook.create_sheet("sheet")
     sheet.append(TABLE_HEAD)
-    for i in range(0, len(model.CLASSES)):
-        label = model.CLASSES[i]
+    # for i in range(0, len(model.CLASSES)):
+    for i in range(0, 2):
+        # label = model.CLASSES[i]
+        label = id2cls[i]
         sheet.append([label, "%.0f" % gt_cls_num[i], "%.0f" % tp[i], "%.0f" % fp[i], "%.0f" % fn[i],
                       "%.6f" % (tp[i] / (tp[i] + fp[i])), "%.6f" % (tp[i] / (tp[i] + fn[i]))])
 

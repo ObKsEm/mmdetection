@@ -10,7 +10,7 @@ from PIL import Image, ImageFont, ImageDraw
 from mmcv import color_val, imwrite
 from mmdet.ops import nms
 import matplotlib
-matplotlib.use('TkAgg')
+# matplotlib.use('TkAgg')
 import matplotlib.pyplot as plt
 
 from mmdet.apis import init_detector, inference_detector, show_result
