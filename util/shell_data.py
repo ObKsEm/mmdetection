@@ -2,19 +2,20 @@ import os
 import cv2
 import xml.etree.ElementTree as ET
 import random
-from mmdet.datasets import shell, rosegold
+from mmdet.datasets import shell, rosegold, UltraAB
 
 img_source_dir = "/home/lichengzhi/mmdetection/data/VOCdevkit/shell/标注图片"
 img_output_dir = "/home/lichengzhi/mmdetection/data/VOCdevkit/shell/JPEGImages"
-xml_source_dir = "/home/lichengzhi/mmdetection/data/VOCdevkit/shell/2019.11.19/Annotations_bailian"
-xml_output_dir = "/home/lichengzhi/mmdetection/data/VOCdevkit/shell/2019.11.19/Annotations_alter"
+xml_source_dir = "/home/lichengzhi/mmdetection/data/VOCdevkit/shell/2020.04.23/Annotations"
+xml_output_dir = "/home/lichengzhi/mmdetection/data/VOCdevkit/shell/2020.04.23/Annotations_alter"
 
 
 
 
 
 # tags = shell.ShellDataset.CLASSES
-tags = rosegold.RoseGoldDataset.CLASSES
+# tags = rosegold.RoseGoldDataset.CLASSES
+tags = UltraAB.UltraABDataset.CLASSES
 
 
 def solve_xml():
@@ -42,12 +43,7 @@ def solve_xml():
 
             for obj in root.findall('object'):
                 name = obj.find('name').text.strip("\ufeff")
-                name = name.replace('_', '/')
-                if name == '壳牌先锋超凡喜力 ACEA C2 / C3 天然气全合成油 0W-40 4L':
-                    name = "壳牌先锋超凡喜力 ACEA A3 / B4 天然气全合成油 0W-40 4L"
-                if name == '壳牌先锋超凡喜力 ACEA C2 / C3 天然气全合成油 0W-40 1L':
-                    name = "壳牌先锋超凡喜力 ACEA A3 / B4 天然气全合成油 0W-40 1L"
-                if name.find("先锋") == -1:
+                if name.find("恒护") == -1:
                     name = "其他"
                 obj.find('name').text = name
                 if name not in tags:
@@ -73,8 +69,8 @@ def solve_img():
 
 
 def generate_main():
-    main_dir = "/home/lichengzhi/mmdetection/data/VOCdevkit/shell/2020.03.25/ImageSets/Main"
-    annotations_dir = "/home/lichengzhi/mmdetection/data/VOCdevkit/shell/2020.03.25/Annotations"
+    main_dir = "/home/lichengzhi/mmdetection/data/VOCdevkit/shell/2020.04.17/ImageSets/Main"
+    annotations_dir = "/home/lichengzhi/mmdetection/data/VOCdevkit/shell/2020.04.17/Annotations"
     if not os.path.exists(main_dir):
         os.makedirs(main_dir)
     total_xml = os.listdir(annotations_dir)
@@ -104,8 +100,8 @@ def generate_main():
 
 def main():
     # solve_img()
-    # solve_xml()
-    generate_main()
+    solve_xml()
+    # generate_main()
 
 
 if __name__ == "__main__":

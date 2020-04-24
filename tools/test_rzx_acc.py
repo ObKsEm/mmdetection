@@ -20,9 +20,9 @@ import xml.etree.ElementTree as ET
 
 TABLE_HEAD = ["名称", "样本个数", "tp", "fp", "fn", "precision", "recall"]
 
-test_img_path = "/home/lichengzhi/mmdetection/data/VOCdevkit/rzx/2020.03.26/JPEGImages"
-test_xml_path = "/home/lichengzhi/mmdetection/data/VOCdevkit/rzx/2020.03.26/Annotations"
-test_path = "/home/lichengzhi/mmdetection/data/VOCdevkit/rzx/2020.03.26/ImageSets/Main/test.txt"
+test_img_path = "/home/lichengzhi/mmdetection/data/VOCdevkit/rzx/2020.04.17/JPEGImages"
+test_xml_path = "/home/lichengzhi/mmdetection/data/VOCdevkit/rzx/2020.04.17/Annotations"
+test_path = "/home/lichengzhi/mmdetection/data/VOCdevkit/rzx/2020.04.17/ImageSets/Main/test.txt"
 
 
 def parse_args():

@@ -14,24 +14,20 @@ import matplotlib
 import matplotlib.pyplot as plt
 
 from mmdet.apis import init_detector, inference_detector, show_result
-from mmdet.datasets.shell import ShellDataset
-from mmdet.datasets.MidChineseDescription import MidChineseDescriptionDataset
-from mmdet.datasets.sku import SkuDataset
-from mmdet.datasets.uav import UavDataset
-from mmdet.datasets.rosegold import RoseGoldDataset, RoseGoldMidDataset
-from mmdet.datasets.character import CharacterDataset
 from mmdet.datasets.rgcoco import RGCocoDataset
-from mmdet.datasets.rzxcoco import RZXCocoDataset
-from mmdet.datasets.yccoco import YCCocoDataset
+from mmdet.datasets.rosegold import RoseGoldDataset
 from mmdet.datasets.UltraAB import UltraABDataset
+from util.py_nms import py_cpu_nms
 
 font = ImageFont.truetype('fzqh.ttf', 20)
 
 
 def parse_args():
     parser = argparse.ArgumentParser(description='MMDet test detector')
-    parser.add_argument('config', help='test config file path')
-    parser.add_argument('checkpoint', help='checkpoint file')
+    parser.add_argument('configrg', help='test config file path')
+    parser.add_argument('checkpointrg', help='checkpoint file')
+    parser.add_argument('configab', help='test config file path')
+    parser.add_argument('checkpointab', help='checkpoint file')
     parser.add_argument('--out', help='output result file')
     parser.add_argument(
         '--eval',
@@ -60,35 +56,60 @@ def write_text_to_image(img_OpenCV, label, bbox, text_color):
     return ret
 
 
-def show_result_in_Chinese(img, result, class_names, score_thr=0.3, out_file=None, thickness=1, bbox_color='green',
+def show_result_in_Chinese(img, resultrg, resultab, rg_class_names, ab_class_names, score_thr=0.3, out_file=None, thickness=1, bbox_color='green',
                            text_color='green'):
-    assert isinstance(class_names, (tuple, list))
+    assert isinstance(rg_class_names, (tuple, list))
+    assert isinstance(ab_class_names, (tuple, list))
     img = mmcv.imread(img)
-    if isinstance(result, tuple):
-        bbox_result, segm_result = result
+
+    if isinstance(resultrg, tuple):
+        rg_bbox_result, segm_result = resultrg
     else:
-        bbox_result, segm_result = result, None
+        rg_bbox_result, segm_result = resultrg, None
 
-    bboxes = np.vstack(bbox_result)
+    if isinstance(resultab, tuple):
+        ab_bbox_result, segm_result = resultab
+    else:
+        ab_bbox_result, segm_result = resultab, None
+
+    # bbox_result = np.vstack(ab_bbox_result)
+    bboxes_rg = np.vstack(rg_bbox_result)
+    bboxes_ab = np.vstack(ab_bbox_result)
     # draw segmentation masks
-    if segm_result is not None:
-        segms = mmcv.concat_list(segm_result)
-        inds = np.where(bboxes[:, -1] > score_thr)[0]
-        for i in inds:
-            color_mask = np.random.randint(0, 256, (1, 3), dtype=np.uint8)
-            mask = maskUtils.decode(segms[i]).astype(np.bool)
-            img[mask] = img[mask] * 0.5 + color_mask * 0.5
+    # if segm_result is not None:
+    #     segms = mmcv.concat_list(segm_result)
+    #     inds = np.where(bboxes[:, -1] > score_thr)[0]
+    #     for i in inds:
+    #         color_mask = np.random.randint(0, 256, (1, 3), dtype=np.uint8)
+    #         mask = maskUtils.decode(segms[i]).astype(np.bool)
+    #         img[mask] = img[mask] * 0.5 + color_mask * 0.5
     # draw bounding boxes
-    labels = [
-        np.full(bbox.shape[0], i, dtype=np.int32)
-        for i, bbox in enumerate(bbox_result)
-    ]
-    labels = np.concatenate(labels)
 
-    assert bboxes.ndim == 2
-    assert labels.ndim == 1
-    assert bboxes.shape[0] == labels.shape[0]
-    assert bboxes.shape[1] == 4 or bboxes.shape[1] == 5
+    labels_rg = [
+        np.full(bbox.shape[0], rg_class_names[i])
+        for i, bbox in enumerate(rg_bbox_result)
+    ]
+    labels_rg = np.concatenate(labels_rg)
+
+    labels_ab = [
+        np.full(bbox.shape[0], ab_class_names[i])
+        for i, bbox in enumerate(ab_bbox_result)
+    ]
+    labels_ab = np.concatenate(labels_ab)
+
+    assert bboxes_rg.ndim == 2
+    assert labels_rg.ndim == 1
+    assert bboxes_rg.shape[0] == labels_rg.shape[0]
+    assert bboxes_rg.shape[1] == 4 or bboxes_rg.shape[1] == 5
+
+    assert bboxes_ab.ndim == 2
+    assert labels_ab.ndim == 1
+    assert bboxes_ab.shape[0] == labels_ab.shape[0]
+    assert bboxes_ab.shape[1] == 4 or bboxes_ab.shape[1] == 5
+
+    bboxes = np.vstack((rg_bbox_result + ab_bbox_result))
+    labels = np.hstack((labels_rg, labels_ab))
+
     if score_thr > 0:
         assert bboxes.shape[1] == 5
         scores = bboxes[:, -1]
@@ -98,9 +119,13 @@ def show_result_in_Chinese(img, result, class_names, score_thr=0.3, out_file=Non
 
     bbox_color = color_val(bbox_color)
     text_color = color_val(text_color)
-    test_bboxes = nms(bboxes, 0.5)
-    new_bboxes = [bboxes[i] for i in test_bboxes[1]]
-    new_labels = [labels[i] for i in test_bboxes[1]]
+    test_bboxes = py_cpu_nms(bboxes, labels, 0.5)
+    new_bboxes = [bboxes[i] for i in test_bboxes]
+    new_labels = [labels[i] for i in test_bboxes]
+
+    # test_bboxes = nms(bboxes, 0.5)
+    # new_bboxes = [bboxes[i] for i in test_bboxes[1]]
+    # new_labels = [labels[i] for i in test_bboxes[1]]
 
     for bbox, label in zip(new_bboxes, new_labels):
         bbox_int = bbox.astype(np.int32)
@@ -108,8 +133,7 @@ def show_result_in_Chinese(img, result, class_names, score_thr=0.3, out_file=Non
         right_bottom = (bbox_int[2], bbox_int[3])
         cv2.rectangle(
             img, left_top, right_bottom, bbox_color, thickness=thickness)
-        label_text = class_names[
-            label] if class_names is not None else 'cls {}'.format(label)
+        label_text = label
         if len(bbox) > 4:
             label_text += '|{:.02f}'.format(bbox[-1])
         img = write_text_to_image(img, label_text, (bbox_int[0], bbox_int[1] - 2), text_color)
@@ -121,23 +145,34 @@ def show_result_in_Chinese(img, result, class_names, score_thr=0.3, out_file=Non
 def main():
     args = parse_args()
 
-    cfg = mmcv.Config.fromfile(args.config)
-    cfg.data.test.test_mode = True
+    rgcfg = mmcv.Config.fromfile(args.configrg)
+    rgcfg.data.test.test_mode = True
 
-    config_file = args.config
-    checkpoint_file = args.checkpoint
+    abcfg = mmcv.Config.fromfile(args.configab)
+    abcfg.data.test.test_mode = True
+
+    rg_config_file = args.configrg
+    rg_checkpoint_file = args.checkpointrg
+
+    ab_config_file = args.configab
+    ab_checkpoint_file = args.checkpointab
 
     # build the model from a config file and a checkpoint file
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-    model = init_detector(config_file, checkpoint_file, device=device)
-    model.CLASSES = RZXCocoDataset.CLASSES
+    modelrg = init_detector(rg_config_file, rg_checkpoint_file, device=device)
+    modelrg.CLASSES = RoseGoldDataset.CLASSES
+
+    modelab = init_detector(ab_config_file, ab_checkpoint_file, device=device)
+    modelab.CLASSES = UltraABDataset.CLASSES
+
     # test a single image and show the results
 
     img = mmcv.imread(args.image)
     #
-    result = inference_detector(model, img)
+    resultrg = inference_detector(modelrg, img)
+    resultab = inference_detector(modelab, img)
     # show_result(img, result, model.CLASSES, score_thr=0.5, out_file=args.out, show=False)
-    show_result_in_Chinese(img, result, model.CLASSES, score_thr=0.0, out_file=args.out)
+    show_result_in_Chinese(img, resultrg, resultab, modelrg.CLASSES, modelab.CLASSES, score_thr=0.5, out_file=args.out)
     #
     # test a list of images and write the results to image files
 

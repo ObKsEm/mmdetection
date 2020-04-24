@@ -6,8 +6,8 @@ import sys
 xml_source_path = "/home/lichengzhi/mmdetection/data/VOCdevkit/shell/2019.11.19/Annotations"
 img_source_path = "/home/lichengzhi/mmdetection/data/VOCdevkit/shell/2019.11.19/JPEGImages"
 
-xml_target_path = "/home/lichengzhi/mmdetection/data/VOCdevkit/shell/2020.03.25/Annotations_rg"
-img_target_path = "/home/lichengzhi/mmdetection/data/VOCdevkit/shell/2020.03.25/JPEGImages_rg"
+xml_target_path = "/home/lichengzhi/mmdetection/data/VOCdevkit/shell/2020.04.17/Annotations_rg"
+img_target_path = "/home/lichengzhi/mmdetection/data/VOCdevkit/shell/2020.04.17/JPEGImages_rg"
 
 
 def main():

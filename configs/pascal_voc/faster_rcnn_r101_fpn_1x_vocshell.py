@@ -3,7 +3,7 @@ import os
 
 model = dict(
     type='FasterRCNN',
-    pretrained='work_dirs/faster_rcnn_r101_fpn_1x_vocsku/epoch_12.pth',
+    pretrained='work_dirs/faster_rcnn_r101_fpn_1x_vocsku/latest.pth',
     backbone=dict(
         type='ResNet',
         depth=101,
@@ -95,13 +95,13 @@ test_cfg = dict(
         nms_thr=0.7,
         min_bbox_size=0),
     rcnn=dict(
-        score_thr=0.01, nms=dict(type='nms', iou_thr=0.5), max_per_img=100)
+        score_thr=0.005, nms=dict(type='nms', iou_thr=0.5), max_per_img=100)
     # soft-nms is also supported for rcnn testing
     # e.g., nms=dict(type='soft_nms', iou_thr=0.5, min_score=0.05)
 )
 # dataset settings
-dataset_type = 'UltraABDataset'
-data_root = 'data/VOCdevkit/shell/2020.03.25'
+dataset_type = 'ABRGDataset'
+data_root = 'data/VOCdevkit/shell/2019.11.05'
 img_norm_cfg = dict(
     mean=[123.675, 116.28, 103.53], std=[58.395, 57.12, 57.375], to_rgb=True)
 train_pipeline = [
@@ -172,10 +172,10 @@ log_config = dict(
     ])
 # yapf:enable
 # runtime settings
-total_epochs = 20
+total_epochs = 30
 dist_params = dict(backend='nccl')
 log_level = 'INFO'
-work_dir = './work_dirs/faster_rcnn_r101_fpn_1x_vocshell/2020.03.25'
+work_dir = './work_dirs/faster_rcnn_r101_fpn_1x_vocshell/2020.04.17'
 load_from = None
 resume_from = None
 workflow = [('train', 1)]
