@@ -1,5 +1,6 @@
 import argparse
 import os
+from pprint import pprint
 
 import cv2
 import mmcv
@@ -72,6 +73,9 @@ def show_result_in_Chinese(img, resultrg, resultab, rg_class_names, ab_class_nam
     else:
         ab_bbox_result, segm_result = resultab, None
 
+    print(rg_bbox_result)
+    print(ab_bbox_result)
+
     # bbox_result = np.vstack(ab_bbox_result)
     bboxes_rg = np.vstack(rg_bbox_result)
     bboxes_ab = np.vstack(ab_bbox_result)
@@ -122,7 +126,6 @@ def show_result_in_Chinese(img, resultrg, resultab, rg_class_names, ab_class_nam
     test_bboxes = py_cpu_nms(bboxes, labels, 0.5)
     new_bboxes = [bboxes[i] for i in test_bboxes]
     new_labels = [labels[i] for i in test_bboxes]
-
     # test_bboxes = nms(bboxes, 0.5)
     # new_bboxes = [bboxes[i] for i in test_bboxes[1]]
     # new_labels = [labels[i] for i in test_bboxes[1]]

@@ -127,7 +127,7 @@ def main():
     # build the model from a config file and a checkpoint file
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model = init_detector(config_file, checkpoint_file, device=device)
-    model.CLASSES = RoseGoldDataset.CLASSES
+    model.CLASSES = ABRGDataset.CLASSES
     cls2id = dict(zip(model.CLASSES, range(0, len(model.CLASSES))))
     acc = 0.0
     tot = 0.0
@@ -198,9 +198,9 @@ def main():
         print("%s: %.0f gt, %.0f det, %.0f tp, precision: %.6f, recall: %.6f" %
               (model.CLASSES[i], gt_cls_num[i], tp[i] + fp[i], tp[i], tp[i] / (tp[i] + fp[i]), tp[i] / (tp[i] + fn[i])))\
 
-    if os.path.exists("shell_statistics.xlsx"):
-        os.remove("shell_statistics.xlsx")
-    workbook = openpyxl.Workbook("shell_statistics.xlsx")
+    if os.path.exists("shell_statistics_4.17.xlsx"):
+        os.remove("shell_statistics_4.17.xlsx")
+    workbook = openpyxl.Workbook("shell_statistics_4.17.xlsx")
     sheet = workbook.create_sheet("sheet")
     sheet.append(TABLE_HEAD)
     for i in range(0, len(model.CLASSES)):
@@ -208,7 +208,7 @@ def main():
         sheet.append([label, "%.0f" % gt_cls_num[i], "%.0f" % tp[i], "%.0f" % fp[i], "%.0f" % fn[i],
                       "%.6f" % (tp[i] / (tp[i] + fp[i])), "%.6f" % (tp[i] / (tp[i] + fn[i]))])
 
-    workbook.save("shell_statistics.xlsx")
+    workbook.save("shell_statistics_4.17.xlsx")
 
 
 if __name__ == "__main__":
