@@ -1,5 +1,6 @@
 import argparse
 import os
+from pprint import pprint
 
 import cv2
 import mmcv
@@ -133,11 +134,18 @@ def main():
     model.CLASSES = RZXCocoDataset.CLASSES
     # test a single image and show the results
 
-    img = mmcv.imread(args.image)
+    # img = mmcv.imread(args.image)
+    img = []
+    base_path = "/home/lichengzhi/mmdetection/demo/rzx/batch_test"
+    for i in range(0, 2):
+        filename = "test" + str(i + 1) + ".jpg"
+        print(filename)
+        img.append(mmcv.imread(os.path.join(base_path, filename)))
     #
     result = inference_detector(model, img)
     # show_result(img, result, model.CLASSES, score_thr=0.5, out_file=args.out, show=False)
-    show_result_in_Chinese(img, result, model.CLASSES, score_thr=0.5, out_file=args.out)
+    pprint(result)
+    # show_result_in_Chinese(img, result, model.CLASSES, score_thr=0.5, out_file=args.out)
     #
     # test a list of images and write the results to image files
 
