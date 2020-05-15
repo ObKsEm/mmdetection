@@ -6,11 +6,8 @@ from mmdet.datasets import shell, rosegold, UltraAB
 
 img_source_dir = "/home/lichengzhi/mmdetection/data/VOCdevkit/shell/标注图片"
 img_output_dir = "/home/lichengzhi/mmdetection/data/VOCdevkit/shell/JPEGImages"
-xml_source_dir = "/home/lichengzhi/mmdetection/data/VOCdevkit/shell/2020.04.23/Annotations"
-xml_output_dir = "/home/lichengzhi/mmdetection/data/VOCdevkit/shell/2020.04.23/Annotations_alter"
-
-
-
+xml_source_dir = "/home/lichengzhi/mmdetection/data/VOCdevkit/shell/2020.05.08/Annotations_ori"
+xml_output_dir = "/home/lichengzhi/mmdetection/data/VOCdevkit/shell/2020.05.08/Annotations_alter"
 
 
 # tags = shell.ShellDataset.CLASSES
@@ -69,8 +66,8 @@ def solve_img():
 
 
 def generate_main():
-    main_dir = "/home/lichengzhi/mmdetection/data/VOCdevkit/shell/2020.04.23/ImageSets/Main"
-    annotations_dir = "/home/lichengzhi/mmdetection/data/VOCdevkit/shell/2020.04.23/Annotations"
+    main_dir = "/home/lichengzhi/mmdetection/data/VOCdevkit/shell/kv_board/ImageSets/Main"
+    annotations_dir = "/home/lichengzhi/mmdetection/data/VOCdevkit/shell/kv_board/Annotations"
     if not os.path.exists(main_dir):
         os.makedirs(main_dir)
     total_xml = os.listdir(annotations_dir)

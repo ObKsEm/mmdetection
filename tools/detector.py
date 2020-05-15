@@ -135,12 +135,14 @@ def main():
     # test a single image and show the results
 
     # img = mmcv.imread(args.image)
-    img = []
+    img_path = []
     base_path = "/home/lichengzhi/mmdetection/demo/rzx/batch_test"
     for i in range(0, 2):
         filename = "test" + str(i + 1) + ".jpg"
         print(filename)
-        img.append(mmcv.imread(os.path.join(base_path, filename)))
+        img_path.append(os.path.join(base_path, filename))
+
+    img = mmcv.imread(img_path)
     #
     result = inference_detector(model, img)
     # show_result(img, result, model.CLASSES, score_thr=0.5, out_file=args.out, show=False)

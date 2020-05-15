@@ -3,10 +3,10 @@ import os
 
 model = dict(
     type='FasterRCNN',
-    pretrained='work_dirs/faster_rcnn_r101_fpn_1x_vocsku/latest.pth',
+    pretrained='torchvision://resnet50',
     backbone=dict(
         type='ResNet',
-        depth=101,
+        depth=50,
         num_stages=4,
         out_indices=(0, 1, 2, 3),
         frozen_stages=1,
@@ -39,7 +39,7 @@ model = dict(
         in_channels=256,
         fc_out_channels=1024,
         roi_feat_size=7,
-        num_classes=8,
+        num_classes=2,
         target_means=[0., 0., 0., 0.],
         target_stds=[0.1, 0.1, 0.2, 0.2],
         reg_class_agnostic=False,
@@ -100,14 +100,14 @@ test_cfg = dict(
     # e.g., nms=dict(type='soft_nms', iou_thr=0.5, min_score=0.05)
 )
 # dataset settings
-dataset_type = 'UltraABDataset'
-data_root = 'data/VOCdevkit/shell/2020.05.08'
+dataset_type = 'IconDataset'
+data_root = 'data/VOCdevkit/icon'
 img_norm_cfg = dict(
     mean=[123.675, 116.28, 103.53], std=[58.395, 57.12, 57.375], to_rgb=True)
 train_pipeline = [
     dict(type='LoadImageFromFile'),
     dict(type='LoadAnnotations', with_bbox=True),
-    dict(type='Resize', img_scale=(1000, 600), keep_ratio=True),
+    dict(type='Resize', img_scale=(720, 1280), keep_ratio=True),
     dict(type='RandomFlip', flip_ratio=0.5),
     dict(type='Normalize', **img_norm_cfg),
     dict(type='Pad', size_divisor=32),
@@ -118,7 +118,7 @@ test_pipeline = [
     dict(type='LoadImageFromFile'),
     dict(
         type='MultiScaleFlipAug',
-        img_scale=(1000, 600),
+        img_scale=(720, 1280),
         flip=False,
         transforms=[
             dict(type='Resize', keep_ratio=True),
@@ -172,10 +172,10 @@ log_config = dict(
     ])
 # yapf:enable
 # runtime settings
-total_epochs = 30
+total_epochs = 12
 dist_params = dict(backend='nccl')
 log_level = 'INFO'
-work_dir = './work_dirs/faster_rcnn_r101_fpn_1x_vocshell/2020.05.08'
+work_dir = './work_dirs/faster_rcnn_r50_fpn_1x_vocicon'
 load_from = None
 resume_from = None
 workflow = [('train', 1)]
