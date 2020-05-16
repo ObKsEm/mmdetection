@@ -19,6 +19,7 @@ from .rzxcoco import RZXCocoDataset
 from .yccoco import YCCocoDataset
 from .UltraAB import UltraABDataset
 from .abrg import ABRGDataset
+from .kv_board import KvBoardDataset
 __all__ = [
     'CustomDataset', 'XMLDataset', 'CocoDataset', 'VOCDataset',
     'CityscapesDataset', 'GroupSampler', 'DistributedGroupSampler',
@@ -26,5 +27,6 @@ __all__ = [
     'WIDERFaceDataset', 'DATASETS', 'PIPELINES', 'build_dataset',
     'ShellDataset', 'SkuDataset', 'UavDataset', 'MidChineseDescription',
     'RoseGoldDataset', 'RoseGoldMidDataset', 'CharacterDataset', 'RGCocoDataset',
-    'RZXDataset', 'RZXCocoDataset', 'YCCocoDataset', 'UltraABDataset', 'ABRGDataset'
+    'RZXDataset', 'RZXCocoDataset', 'YCCocoDataset', 'UltraABDataset', 'ABRGDataset',
+    'KvBoardDataset'
 ]

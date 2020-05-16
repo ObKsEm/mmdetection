@@ -1,8 +1,18 @@
-import numpy as np
-from pycocotools.coco import COCO
+import itertools
+import logging
+import os.path as osp
+import tempfile
 
+import mmcv
+import numpy as np
+from mmcv.utils import print_log
+from pycocotools.coco import COCO
+from pycocotools.cocoeval import COCOeval
+from terminaltables import AsciiTable
+
+from mmdet.core import eval_recalls
+from .builder import DATASETS
 from .custom import CustomDataset
-from .registry import DATASETS
 
 
 @DATASETS.register_module
