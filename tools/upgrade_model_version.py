@@ -183,7 +183,7 @@ def main():
     parser.add_argument(
         '--num-classes',
         type=int,
-        default=81,
+        default=56,
         help='number of classes of the original model')
     args = parser.parse_args()
     convert(args.in_file, args.out_file, args.num_classes)
