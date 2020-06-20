@@ -17,6 +17,8 @@ from mmdet.ops import nms
 from mmdet.apis import init_detector, inference_detector, show_result
 from mmdet.datasets.rzxcoco import RZXCocoDataset
 import xml.etree.ElementTree as ET
+import operator as op
+import time
 
 TABLE_HEAD = ["名称", "样本个数", "tp", "fp", "fn", "precision", "recall"]
 
@@ -86,7 +88,7 @@ def get_result(result, score_thr=0.5):
         labels = labels[inds]
         scores = scores[inds]
 
-    test_bboxes = nms(bboxes, 0.5)
+    test_bboxes = nms(bboxes, 0.3)
     new_bboxes = [bboxes[i] for i in test_bboxes[1]]
     new_labels = [labels[i] for i in test_bboxes[1]]
     new_scores = [scores[i] for i in test_bboxes[1]]
@@ -116,6 +118,7 @@ def main():
     tn = np.zeros((len(model.CLASSES)))
     acc = 0.0
     tot = 0.0
+    s1 = time.time()
     with open(test_path, "r") as f:
         filenames = f.readlines()
         for filename in filenames:
@@ -154,11 +157,14 @@ def main():
                 for i in range(0, len(det_matched_gt)):
                     gt = int(det_matched_gt[i])
                     if gt > -1:
-                        if model.CLASSES[det_labels[i]] == gt_labels[gt]:
+                        if op.eq(model.CLASSES[det_labels[i]], gt_labels[gt]):
                             tp[det_labels[i]] += 1
+                            assert(tp[det_labels[i]] <= gt_cls_num[det_labels[i]])
                             acc += 1
                         else:
                             fp[det_labels[i]] += 1
+    s2 = time.time()
+    print(f"time: {s2 - s1}s")
     for i in range(0, len(model.CLASSES)):
         fn[i] = gt_cls_num[i] - tp[i]
         tn[i] = gt_cls_num.sum() - fn[i] - tp[i] - fp[i]

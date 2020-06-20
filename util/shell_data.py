@@ -2,17 +2,38 @@ import os
 import cv2
 import xml.etree.ElementTree as ET
 import random
-from mmdet.datasets import shell, rosegold, UltraAB
+from mmdet.datasets import shell, rosegold, UltraAB, Ultra4SimplifiedDataset
 
-img_source_dir = "/home/lichengzhi/mmdetection/data/VOCdevkit/shell/标注图片"
-img_output_dir = "/home/lichengzhi/mmdetection/data/VOCdevkit/shell/JPEGImages"
-xml_source_dir = "/home/lichengzhi/mmdetection/data/VOCdevkit/shell/2020.05.08/Annotations_ori"
-xml_output_dir = "/home/lichengzhi/mmdetection/data/VOCdevkit/shell/2020.05.08/Annotations_alter"
+img_source_dir = "/home/lichengzhi/mmdetection/data/VOCdevkit/shell/2020.05.26/JPEGImages"
+img_output_dir = "/home/lichengzhi/mmdetection/data/VOCdevkit/shell/2020.06.15/JPEGImages"
+xml_source_dir = "/home/lichengzhi/mmdetection/data/VOCdevkit/shell/2020.05.26/Annotations"
+xml_output_dir = "/home/lichengzhi/mmdetection/data/VOCdevkit/shell/2020.06.15/Annotations"
 
+tags = Ultra4SimplifiedDataset.CLASSES
 
-# tags = shell.ShellDataset.CLASSES
-# tags = rosegold.RoseGoldDataset.CLASSES
-tags = UltraAB.UltraABDataset.CLASSES
+cls_map = {
+    '壳牌恒护超凡喜力欧系专属 5W-30 1L': '壳牌恒护超凡喜力系列 1L',
+    '壳牌恒护超凡喜力欧系专属 5W-30 4L': '壳牌恒护超凡喜力系列 4L',
+    '壳牌恒护超凡喜力欧系专属 5W-40 1L': '壳牌恒护超凡喜力系列 1L',
+    '壳牌恒护超凡喜力欧系专属 5W-40 4L': '壳牌恒护超凡喜力系列 4L',
+    '壳牌恒护超凡喜力亚系专属 5W-30 1L': '壳牌恒护超凡喜力系列 1L',
+    '壳牌恒护超凡喜力亚系专属 5W-30 4L': '壳牌恒护超凡喜力系列 4L',
+    '壳牌先锋超凡喜力 SN PLUS 天然气全合成油 0W-20 4L': '壳牌先锋超凡喜力系列 4L',
+    '壳牌先锋超凡喜力 SN PLUS 天然气全合成油 0W-20 1L': '壳牌先锋超凡喜力系列 1L',
+    '壳牌先锋超凡喜力 SN PLUS 天然气全合成油 0W-30 4L': '壳牌先锋超凡喜力系列 4L',
+    '壳牌先锋超凡喜力 SN PLUS 天然气全合成油 0W-30 1L': '壳牌先锋超凡喜力系列 1L',
+    '壳牌先锋超凡喜力 ACEA C5 天然气全合成油 0W-20 4L': '壳牌先锋超凡喜力系列 4L',
+    '壳牌先锋超凡喜力 ACEA C5 天然气全合成油 0W-20 1L': '壳牌先锋超凡喜力系列 1L',
+    '壳牌先锋超凡喜力 ACEA C2 / C3 天然气全合成油 0W-30 4L': '壳牌先锋超凡喜力系列 4L',
+    '壳牌先锋超凡喜力 ACEA C2 / C3 天然气全合成油 0W-30 1L': '壳牌先锋超凡喜力系列 1L',
+    '壳牌先锋超凡喜力 ACEA A3 / B4 天然气全合成油 0W-40 4L': '壳牌先锋超凡喜力系列 4L',
+    '壳牌先锋超凡喜力 ACEA A3 / B4 天然气全合成油 0W-40 1L': '壳牌先锋超凡喜力系列 1L',
+    '壳牌超凡喜力系列 1L': '壳牌超凡喜力系列 1L',
+    '壳牌超凡喜力系列 4L': '壳牌超凡喜力系列 4L',
+    '壳牌极净超凡喜力系列 1L': '壳牌极净超凡喜力系列 1L',
+    '壳牌极净超凡喜力系列 4L': '壳牌极净超凡喜力系列 4L',
+    '其他': '其他'
+}
 
 
 def solve_xml():
@@ -40,8 +61,8 @@ def solve_xml():
 
             for obj in root.findall('object'):
                 name = obj.find('name').text.strip("\ufeff")
-                if name.find("恒护") == -1:
-                    name = "其他"
+                if name in cls_map.keys():
+                    name = cls_map[name]
                 obj.find('name').text = name
                 if name not in tags:
                     print("Label %s in image %s no found.\n" % (name, xml_name))
@@ -66,8 +87,8 @@ def solve_img():
 
 
 def generate_main():
-    main_dir = "/home/lichengzhi/mmdetection/data/VOCdevkit/shell/kv_board/ImageSets/Main"
-    annotations_dir = "/home/lichengzhi/mmdetection/data/VOCdevkit/shell/kv_board/Annotations"
+    main_dir = "/home/lichengzhi/mmdetection/data/VOCdevkit/shell/2020.06.15/ImageSets/Main"
+    annotations_dir = "/home/lichengzhi/mmdetection/data/VOCdevkit/shell/2020.06.15/Annotations"
     if not os.path.exists(main_dir):
         os.makedirs(main_dir)
     total_xml = os.listdir(annotations_dir)

@@ -3,7 +3,7 @@ import os
 
 model = dict(
     type='FasterRCNN',
-    pretrained='work_dirs/faster_rcnn_r101_fpn_1x_vocsku/latest.pth',
+    pretrained='torchvision://resnet101',
     backbone=dict(
         type='ResNet',
         depth=101,
@@ -39,7 +39,7 @@ model = dict(
         in_channels=256,
         fc_out_channels=1024,
         roi_feat_size=7,
-        num_classes=18,
+        num_classes=10,
         target_means=[0., 0., 0., 0.],
         target_stds=[0.1, 0.1, 0.2, 0.2],
         reg_class_agnostic=False,
@@ -95,13 +95,13 @@ test_cfg = dict(
         nms_thr=0.7,
         min_bbox_size=0),
     rcnn=dict(
-        score_thr=0.005, nms=dict(type='nms', iou_thr=0.5), max_per_img=100)
+        score_thr=0.05, nms=dict(type='nms', iou_thr=0.5), max_per_img=100)
     # soft-nms is also supported for rcnn testing
     # e.g., nms=dict(type='soft_nms', iou_thr=0.5, min_score=0.05)
 )
 # dataset settings
-dataset_type = 'ABRGDataset'
-data_root = 'data/VOCdevkit/shell/2019.11.05'
+dataset_type = 'Ultra4SimplifiedDataset'
+data_root = 'data/VOCdevkit/shell/2020.06.15'
 img_norm_cfg = dict(
     mean=[123.675, 116.28, 103.53], std=[58.395, 57.12, 57.375], to_rgb=True)
 train_pipeline = [
@@ -153,7 +153,7 @@ data = dict(
         img_prefix=data_root,
         pipeline=test_pipeline))
 # optimizer
-optimizer = dict(type='SGD', lr=0.01, momentum=0.9, weight_decay=0.0001)
+optimizer = dict(type='SGD', lr=0.005, momentum=0.9, weight_decay=0.0001)
 optimizer_config = dict(grad_clip=dict(max_norm=35, norm_type=2))
 # learning policy
 lr_config = dict(
@@ -175,7 +175,7 @@ log_config = dict(
 total_epochs = 30
 dist_params = dict(backend='nccl')
 log_level = 'INFO'
-work_dir = './work_dirs/faster_rcnn_r101_fpn_1x_vocshell/2020.04.17'
+work_dir = './work_dirs/faster_rcnn_r101_fpn_1x_vocshell/2020.06.15'
 load_from = None
 resume_from = None
 workflow = [('train', 1)]

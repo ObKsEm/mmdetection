@@ -22,6 +22,8 @@ from .UltraAB import UltraABDataset
 from .abrg import ABRGDataset
 from .icon import IconDataset
 from .kv_board import KvBoardDataset
+from .kvcoco import KVCocoDataset
+from .Ultra4 import Ultra4Dataset, Ultra4SimplifiedDataset, Ultra4SimplifiedMidDataset
 __all__ = [
     'CustomDataset', 'XMLDataset', 'CocoDataset', 'VOCDataset',
     'CityscapesDataset', 'GroupSampler', 'DistributedGroupSampler',
@@ -30,5 +32,6 @@ __all__ = [
     'ShellDataset', 'SkuDataset', 'UavDataset', 'MidChineseDescription',
     'RoseGoldDataset', 'RoseGoldMidDataset', 'CharacterDataset', 'RGCocoDataset',
     'RZXDataset', 'RZXCocoDataset', 'YCCocoDataset', 'UltraABDataset', 'ABRGDataset',
-    'IconDataset', 'KvBoardDataset'
+    'IconDataset', 'KvBoardDataset', 'KVCocoDataset', 'Ultra4Dataset', 'Ultra4SimplifiedDataset',
+    'Ultra4SimplifiedMidDataset'
 ]

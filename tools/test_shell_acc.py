@@ -19,14 +19,20 @@ from mmdet.datasets.shell import ShellDataset
 from mmdet.datasets.sku import SkuDataset
 from mmdet.datasets.rosegold import RoseGoldDataset
 from mmdet.datasets.UltraAB import UltraABDataset
-from mmdet.datasets.abrg import ABRGDataset
+from mmdet.datasets.kv_board import KvBoardDataset
+from mmdet.datasets.Ultra4 import Ultra4Dataset, Ultra4SimplifiedDataset
 import xml.etree.ElementTree as ET
 
 TABLE_HEAD = ["名称", "样本个数", "tp", "fp", "fn", "precision", "recall"]
 
-test_img_path = "/home/lichengzhi/mmdetection/data/VOCdevkit/shell/2020.04.17/JPEGImages"
-test_xml_path = "/home/lichengzhi/mmdetection/data/VOCdevkit/shell/2020.04.17/Annotations"
-test_path = "/home/lichengzhi/mmdetection/data/VOCdevkit/shell/2020.04.17/ImageSets/Main/test.txt"
+# test_img_path = "/home/lichengzhi/mmdetection/data/VOCdevkit/shell/2020.05.21/JPEGImages"
+# test_xml_path = "/home/lichengzhi/mmdetection/data/VOCdevkit/shell/2020.05.21/Annotations"
+# test_path = "/home/lichengzhi/mmdetection/data/VOCdevkit/shell/2020.05.21/ImageSets/Main/test.txt"
+test_img_path = "/home/lichengzhi/mmdetection/data/VOCdevkit/shell/2020.06.15/JPEGImages"
+test_xml_path = "/home/lichengzhi/mmdetection/data/VOCdevkit/shell/2020.06.15/Annotations"
+test_path = "/home/lichengzhi/mmdetection/data/VOCdevkit/shell/2020.06.15/ImageSets/Main/test.txt"
+
+output_file_name = "shell_statistics_6.15.xlsx"
 
 
 def parse_args():
@@ -127,7 +133,7 @@ def main():
     # build the model from a config file and a checkpoint file
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model = init_detector(config_file, checkpoint_file, device=device)
-    model.CLASSES = ABRGDataset.CLASSES
+    model.CLASSES = Ultra4SimplifiedDataset.CLASSES
     cls2id = dict(zip(model.CLASSES, range(0, len(model.CLASSES))))
     acc = 0.0
     tot = 0.0
@@ -180,6 +186,7 @@ def main():
                             acc += 1
                         else:
                             fp[cls2id[model.CLASSES[det_labels[i]]]] += 1
+
     for i in range(0, len(model.CLASSES)):
         fn[i] = gt_cls_num[i] - tp[i]
         tn[i] = gt_cls_num.sum() - fn[i] - tp[i] - fp[i]
@@ -198,9 +205,9 @@ def main():
         print("%s: %.0f gt, %.0f det, %.0f tp, precision: %.6f, recall: %.6f" %
               (model.CLASSES[i], gt_cls_num[i], tp[i] + fp[i], tp[i], tp[i] / (tp[i] + fp[i]), tp[i] / (tp[i] + fn[i])))\
 
-    if os.path.exists("shell_statistics_4.17.xlsx"):
-        os.remove("shell_statistics_4.17.xlsx")
-    workbook = openpyxl.Workbook("shell_statistics_4.17.xlsx")
+    if os.path.exists(output_file_name):
+        os.remove(output_file_name)
+    workbook = openpyxl.Workbook(output_file_name)
     sheet = workbook.create_sheet("sheet")
     sheet.append(TABLE_HEAD)
     for i in range(0, len(model.CLASSES)):
@@ -208,7 +215,7 @@ def main():
         sheet.append([label, "%.0f" % gt_cls_num[i], "%.0f" % tp[i], "%.0f" % fp[i], "%.0f" % fn[i],
                       "%.6f" % (tp[i] / (tp[i] + fp[i])), "%.6f" % (tp[i] / (tp[i] + fn[i]))])
 
-    workbook.save("shell_statistics_4.17.xlsx")
+    workbook.save(output_file_name)
 
 
 if __name__ == "__main__":

@@ -101,7 +101,7 @@ test_cfg = dict(
 )
 # dataset settings
 dataset_type = 'RZXCocoDataset'
-data_root = 'data/coco/rzx/2020.04.17'
+data_root = 'data/coco/rzx/2020.05.29'
 img_norm_cfg = dict(
     mean=[123.675, 116.28, 103.53], std=[58.395, 57.12, 57.375], to_rgb=True)
 train_pipeline = [
@@ -170,7 +170,7 @@ log_config = dict(
 total_epochs = 30
 dist_params = dict(backend='nccl')
 log_level = 'INFO'
-work_dir = './work_dirs/faster_rcnn_r101_fpn_1x_rzx/2020.04.17'
+work_dir = './work_dirs/faster_rcnn_r101_fpn_1x_rzx/2020.05.29'
 load_from = None
 resume_from = None
 workflow = [('train', 1)]
