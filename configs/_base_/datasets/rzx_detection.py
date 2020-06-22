@@ -1,5 +1,5 @@
 dataset_type = 'RZXCocoDataset'
-data_root = 'data/coco/rzx/2020.04.17'
+data_root = 'data/coco/rzx/2020.05.29/'
 img_norm_cfg = dict(
     mean=[123.675, 116.28, 103.53], std=[58.395, 57.12, 57.375], to_rgb=True)
 train_pipeline = [
@@ -46,3 +46,5 @@ data = dict(
         img_prefix=data_root + 'test/',
         pipeline=test_pipeline))
 evaluation = dict(interval=1, metric='bbox')
+
+work_dir = "work_dirs/faster_rcnn_r101_fpn_1x_rzx/2020.06.22"

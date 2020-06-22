@@ -67,7 +67,7 @@ def parse_args():
         '--shape',
         type=int,
         nargs='+',
-        default=[1280, 800],
+        default=[720, 1280],
         help='input image size')
     parser.add_argument(
         '--passes', type=str, nargs='+', help='ONNX optimization passes')
