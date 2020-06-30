@@ -14,19 +14,22 @@ from mmdet.core.evaluation.bbox_overlaps import bbox_overlaps
 
 from mmdet.ops import nms
 
-from mmdet.apis import init_detector, inference_detector, show_result
+from mmdet.apis import init_detector, inference_detector
 from mmdet.datasets.shell import ShellDataset
 from mmdet.datasets.sku import SkuDataset
 from mmdet.datasets.rosegold import RoseGoldDataset
 from mmdet.datasets.UltraAB import UltraABDataset
 from mmdet.datasets.abrg import ABRGDataset
+from mmdet.datasets.Ultra4coco import Ultra4CocoDataset
 import xml.etree.ElementTree as ET
 
 TABLE_HEAD = ["名称", "样本个数", "tp", "fp", "fn", "precision", "recall"]
 
-test_img_path = "/home/lichengzhi/mmdetection/data/VOCdevkit/shell/2020.04.17/JPEGImages"
-test_xml_path = "/home/lichengzhi/mmdetection/data/VOCdevkit/shell/2020.04.17/Annotations"
-test_path = "/home/lichengzhi/mmdetection/data/VOCdevkit/shell/2020.04.17/ImageSets/Main/test.txt"
+test_img_path = "/home/lichengzhi/mmdetection/data/VOCdevkit/shell/2020.06.15/JPEGImages"
+test_xml_path = "/home/lichengzhi/mmdetection/data/VOCdevkit/shell/2020.06.15/Annotations"
+test_path = "/home/lichengzhi/mmdetection/data/VOCdevkit/shell/2020.06.15/ImageSets/Main/test.txt"
+
+output_xml_name = "shell_statistics_6.29.xlsx"
 
 
 def parse_args():
@@ -127,7 +130,7 @@ def main():
     # build the model from a config file and a checkpoint file
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model = init_detector(config_file, checkpoint_file, device=device)
-    model.CLASSES = ABRGDataset.CLASSES
+    model.CLASSES = Ultra4CocoDataset.CLASSES
     cls2id = dict(zip(model.CLASSES, range(0, len(model.CLASSES))))
     acc = 0.0
     tot = 0.0
@@ -198,9 +201,9 @@ def main():
         print("%s: %.0f gt, %.0f det, %.0f tp, precision: %.6f, recall: %.6f" %
               (model.CLASSES[i], gt_cls_num[i], tp[i] + fp[i], tp[i], tp[i] / (tp[i] + fp[i]), tp[i] / (tp[i] + fn[i])))\
 
-    if os.path.exists("shell_statistics_4.17.xlsx"):
-        os.remove("shell_statistics_4.17.xlsx")
-    workbook = openpyxl.Workbook("shell_statistics_4.17.xlsx")
+    if os.path.exists(output_xml_name):
+        os.remove(output_xml_name)
+    workbook = openpyxl.Workbook(output_xml_name)
     sheet = workbook.create_sheet("sheet")
     sheet.append(TABLE_HEAD)
     for i in range(0, len(model.CLASSES)):
@@ -208,7 +211,7 @@ def main():
         sheet.append([label, "%.0f" % gt_cls_num[i], "%.0f" % tp[i], "%.0f" % fp[i], "%.0f" % fn[i],
                       "%.6f" % (tp[i] / (tp[i] + fp[i])), "%.6f" % (tp[i] / (tp[i] + fn[i]))])
 
-    workbook.save("shell_statistics_4.17.xlsx")
+    workbook.save(output_xml_name)
 
 
 if __name__ == "__main__":

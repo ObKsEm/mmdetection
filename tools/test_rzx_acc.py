@@ -14,7 +14,7 @@ from mmdet.core.evaluation.bbox_overlaps import bbox_overlaps
 
 from mmdet.ops import nms
 
-from mmdet.apis import init_detector, inference_detector, show_result
+from mmdet.apis import init_detector, inference_detector
 from mmdet.datasets.rzxcoco import RZXCocoDataset
 import xml.etree.ElementTree as ET
 
@@ -23,6 +23,7 @@ TABLE_HEAD = ["名称", "样本个数", "tp", "fp", "fn", "precision", "recall"]
 test_img_path = "/home/lichengzhi/mmdetection/data/VOCdevkit/rzx/2020.04.17/JPEGImages"
 test_xml_path = "/home/lichengzhi/mmdetection/data/VOCdevkit/rzx/2020.04.17/Annotations"
 test_path = "/home/lichengzhi/mmdetection/data/VOCdevkit/rzx/2020.04.17/ImageSets/Main/test.txt"
+xml_file_name = "rzx_statistics_6.22.xlsx"
 
 
 def parse_args():
@@ -134,7 +135,7 @@ def main():
                     gt_cls_num[cls2id[label]] += 1
                     tot += 1
                 result = inference_detector(model, img)
-                det_bboxes, det_labels, det_scores = get_result(result, score_thr=0.5)
+                det_bboxes, det_labels, det_scores = get_result(result, score_thr=0.3)
                 ious = bbox_overlaps(np.array(det_bboxes), np.array(gt_bboxes))
                 ious_max = ious.max(axis=1)
                 ious_argmax = ious.argmax(axis=1)
@@ -175,9 +176,9 @@ def main():
         print("%s: %.0f gt, %.0f det, %.0f tp, precision: %.6f, recall: %.6f" %
               (model.CLASSES[i], gt_cls_num[i], tp[i] + fp[i], tp[i], tp[i] / (tp[i] + fp[i]), tp[i] / (tp[i] + fn[i])))
 
-    if os.path.exists("rzx_statistics.xlsx"):
-        os.remove("rzx_statistics.xlsx")
-    workbook = openpyxl.Workbook("rzx_statistics.xlsx")
+    if os.path.exists(xml_file_name):
+        os.remove(xml_file_name)
+    workbook = openpyxl.Workbook(xml_file_name)
     sheet = workbook.create_sheet("sheet")
     sheet.append(TABLE_HEAD)
     for i in range(0, len(model.CLASSES)):
@@ -185,7 +186,7 @@ def main():
         sheet.append([label, "%.0f" % gt_cls_num[i], "%.0f" % tp[i], "%.0f" % fp[i], "%.0f" % fn[i],
                       "%.6f" % (tp[i] / (tp[i] + fp[i])), "%.6f" % (tp[i] / (tp[i] + fn[i]))])
 
-    workbook.save("rzx_statistics.xlsx")
+    workbook.save(xml_file_name)
 
 
 if __name__ == "__main__":

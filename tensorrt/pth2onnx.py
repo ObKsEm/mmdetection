@@ -69,7 +69,7 @@ def main():
                       input_names=input_name,
                       output_names=output_name,
                       verbose=True,
-                      opset_version=10
+                      opset_version=11
                       )
 
 
