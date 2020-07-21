@@ -24,6 +24,7 @@ from .icon import IconDataset
 from .kv_board import KvBoardDataset
 from .kvcoco import KVCocoDataset
 from .Ultra4 import Ultra4Dataset, Ultra4SimplifiedDataset, Ultra4SimplifiedMidDataset
+from .crto import CRTODataset, CRTOMidDataset
 __all__ = [
     'CustomDataset', 'XMLDataset', 'CocoDataset', 'VOCDataset',
     'CityscapesDataset', 'GroupSampler', 'DistributedGroupSampler',
@@ -33,5 +34,5 @@ __all__ = [
     'RoseGoldDataset', 'RoseGoldMidDataset', 'CharacterDataset', 'RGCocoDataset',
     'RZXDataset', 'RZXCocoDataset', 'YCCocoDataset', 'UltraABDataset', 'ABRGDataset',
     'IconDataset', 'KvBoardDataset', 'KVCocoDataset', 'Ultra4Dataset', 'Ultra4SimplifiedDataset',
-    'Ultra4SimplifiedMidDataset'
+    'Ultra4SimplifiedMidDataset', 'CRTODataset', 'CRTOMidDataset'
 ]

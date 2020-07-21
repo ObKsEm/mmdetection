@@ -39,7 +39,7 @@ model = dict(
         in_channels=256,
         fc_out_channels=1024,
         roi_feat_size=7,
-        num_classes=10,
+        num_classes=7,
         target_means=[0., 0., 0., 0.],
         target_stds=[0.1, 0.1, 0.2, 0.2],
         reg_class_agnostic=False,
@@ -100,8 +100,8 @@ test_cfg = dict(
     # e.g., nms=dict(type='soft_nms', iou_thr=0.5, min_score=0.05)
 )
 # dataset settings
-dataset_type = 'Ultra4SimplifiedDataset'
-data_root = 'data/VOCdevkit/shell/2020.06.15'
+dataset_type = 'CRTODataset'
+data_root = 'data/VOCdevkit/shell/crto/2020.07.14'
 img_norm_cfg = dict(
     mean=[123.675, 116.28, 103.53], std=[58.395, 57.12, 57.375], to_rgb=True)
 train_pipeline = [
@@ -175,7 +175,7 @@ log_config = dict(
 total_epochs = 30
 dist_params = dict(backend='nccl')
 log_level = 'INFO'
-work_dir = './work_dirs/faster_rcnn_r101_fpn_1x_vocshell/2020.06.15'
+work_dir = './work_dirs/faster_rcnn_r101_fpn_1x_vocshell/crto/2020.07.21'
 load_from = None
 resume_from = None
 workflow = [('train', 1)]
