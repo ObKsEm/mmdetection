@@ -15,12 +15,7 @@ from mmdet.core.evaluation.bbox_overlaps import bbox_overlaps
 from mmdet.ops import nms
 
 from mmdet.apis import init_detector, inference_detector, show_result
-from mmdet.datasets.shell import ShellDataset
-from mmdet.datasets.sku import SkuDataset
-from mmdet.datasets.rosegold import RoseGoldDataset
-from mmdet.datasets.UltraAB import UltraABDataset
-from mmdet.datasets.kv_board import KvBoardDataset
-from mmdet.datasets.Ultra4 import Ultra4Dataset, Ultra4SimplifiedDataset
+from mmdet.datasets.crto import CRTODataset
 import xml.etree.ElementTree as ET
 
 TABLE_HEAD = ["名称", "样本个数", "tp", "fp", "fn", "precision", "recall"]
@@ -28,11 +23,11 @@ TABLE_HEAD = ["名称", "样本个数", "tp", "fp", "fn", "precision", "recall"]
 # test_img_path = "/home/lichengzhi/mmdetection/data/VOCdevkit/shell/2020.05.21/JPEGImages"
 # test_xml_path = "/home/lichengzhi/mmdetection/data/VOCdevkit/shell/2020.05.21/Annotations"
 # test_path = "/home/lichengzhi/mmdetection/data/VOCdevkit/shell/2020.05.21/ImageSets/Main/test.txt"
-test_img_path = "/home/lichengzhi/mmdetection/data/VOCdevkit/shell/2020.06.15/JPEGImages"
-test_xml_path = "/home/lichengzhi/mmdetection/data/VOCdevkit/shell/2020.06.15/Annotations"
-test_path = "/home/lichengzhi/mmdetection/data/VOCdevkit/shell/2020.06.15/ImageSets/Main/test.txt"
+test_img_path = "/data/lichengzhi/mmdetection/data/VOCdevkit/shell/2020.07.14/JPEGImages"
+test_xml_path = "/data/lichengzhi/mmdetection/data/VOCdevkit/shell/2020.07.14/Annotations"
+test_path = "/data/lichengzhi/mmdetection/data/VOCdevkit/shell/2020.07.14/ImageSets/Main/test.txt"
 
-output_file_name = "shell_statistics_6.15.xlsx"
+output_file_name = "shell_statistics_7.22.xlsx"
 
 
 def parse_args():
@@ -133,7 +128,7 @@ def main():
     # build the model from a config file and a checkpoint file
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model = init_detector(config_file, checkpoint_file, device=device)
-    model.CLASSES = Ultra4SimplifiedDataset.CLASSES
+    model.CLASSES = CRTODataset.CLASSES
     cls2id = dict(zip(model.CLASSES, range(0, len(model.CLASSES))))
     acc = 0.0
     tot = 0.0

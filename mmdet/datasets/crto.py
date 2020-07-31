@@ -6,11 +6,11 @@ from .xml_style import XMLDataset
 class CRTODataset(XMLDataset):
 
     CLASSES = (
-        '壳牌劲霸 k4',
-        '壳牌劲霸 k6',
-        '壳牌劲霸 k8',
-        '壳牌劲霸 k10',
-        '壳牌劲霸 k15',
+        '壳牌劲霸柴油机油 k4',
+        '壳牌劲霸柴油机油 k6',
+        '壳牌劲霸柴油机油 k8',
+        '壳牌劲霸柴油机油 k10',
+        '壳牌劲霸柴油机油 k15',
         '其他',
     )
 
