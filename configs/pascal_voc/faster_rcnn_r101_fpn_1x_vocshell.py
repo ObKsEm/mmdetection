@@ -101,7 +101,7 @@ test_cfg = dict(
 )
 # dataset settings
 dataset_type = 'CRTODataset'
-data_root = 'data/VOCdevkit/shell/crto/2020.07.14'
+data_root = 'data/VOCdevkit/shell/crto/2020.08.12'
 img_norm_cfg = dict(
     mean=[123.675, 116.28, 103.53], std=[58.395, 57.12, 57.375], to_rgb=True)
 train_pipeline = [
@@ -175,7 +175,7 @@ log_config = dict(
 total_epochs = 30
 dist_params = dict(backend='nccl')
 log_level = 'INFO'
-work_dir = './work_dirs/faster_rcnn_r101_fpn_1x_vocshell/crto/2020.07.21'
+work_dir = './work_dirs/faster_rcnn_r101_fpn_1x_vocshell/crto/2020.08.12'
 load_from = None
 resume_from = None
 workflow = [('train', 1)]

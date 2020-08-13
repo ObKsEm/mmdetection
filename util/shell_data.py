@@ -2,36 +2,21 @@ import os
 import cv2
 import xml.etree.ElementTree as ET
 import random
-from mmdet.datasets import shell, rosegold, UltraAB, Ultra4SimplifiedDataset
+from mmdet.datasets.crto import CRTODataset
 
-img_source_dir = "/home/lichengzhi/mmdetection/data/VOCdevkit/shell/2020.05.26/JPEGImages"
-img_output_dir = "/home/lichengzhi/mmdetection/data/VOCdevkit/shell/2020.06.15/JPEGImages"
-xml_source_dir = "/home/lichengzhi/mmdetection/data/VOCdevkit/shell/2020.05.26/Annotations"
-xml_output_dir = "/home/lichengzhi/mmdetection/data/VOCdevkit/shell/2020.06.15/Annotations"
+img_source_dir = "/home/lichengzhi/mmdetection/data/VOCdevkit/shell/crto/2020.08.12/JPEGImages"
+img_output_dir = "/home/lichengzhi/mmdetection/data/VOCdevkit/shell/crto/2020.08.12/JPEGImages"
+xml_source_dir = "/home/lichengzhi/mmdetection/data/VOCdevkit/shell/crto/2020.08.12/Annotations"
+xml_output_dir = "/home/lichengzhi/mmdetection/data/VOCdevkit/shell/crto/2020.08.12/Annotations"
 
-tags = Ultra4SimplifiedDataset.CLASSES
+tags = CRTODataset.CLASSES
 
 cls_map = {
-    '壳牌恒护超凡喜力欧系专属 5W-30 1L': '壳牌恒护超凡喜力系列 1L',
-    '壳牌恒护超凡喜力欧系专属 5W-30 4L': '壳牌恒护超凡喜力系列 4L',
-    '壳牌恒护超凡喜力欧系专属 5W-40 1L': '壳牌恒护超凡喜力系列 1L',
-    '壳牌恒护超凡喜力欧系专属 5W-40 4L': '壳牌恒护超凡喜力系列 4L',
-    '壳牌恒护超凡喜力亚系专属 5W-30 1L': '壳牌恒护超凡喜力系列 1L',
-    '壳牌恒护超凡喜力亚系专属 5W-30 4L': '壳牌恒护超凡喜力系列 4L',
-    '壳牌先锋超凡喜力 SN PLUS 天然气全合成油 0W-20 4L': '壳牌先锋超凡喜力系列 4L',
-    '壳牌先锋超凡喜力 SN PLUS 天然气全合成油 0W-20 1L': '壳牌先锋超凡喜力系列 1L',
-    '壳牌先锋超凡喜力 SN PLUS 天然气全合成油 0W-30 4L': '壳牌先锋超凡喜力系列 4L',
-    '壳牌先锋超凡喜力 SN PLUS 天然气全合成油 0W-30 1L': '壳牌先锋超凡喜力系列 1L',
-    '壳牌先锋超凡喜力 ACEA C5 天然气全合成油 0W-20 4L': '壳牌先锋超凡喜力系列 4L',
-    '壳牌先锋超凡喜力 ACEA C5 天然气全合成油 0W-20 1L': '壳牌先锋超凡喜力系列 1L',
-    '壳牌先锋超凡喜力 ACEA C2 / C3 天然气全合成油 0W-30 4L': '壳牌先锋超凡喜力系列 4L',
-    '壳牌先锋超凡喜力 ACEA C2 / C3 天然气全合成油 0W-30 1L': '壳牌先锋超凡喜力系列 1L',
-    '壳牌先锋超凡喜力 ACEA A3 / B4 天然气全合成油 0W-40 4L': '壳牌先锋超凡喜力系列 4L',
-    '壳牌先锋超凡喜力 ACEA A3 / B4 天然气全合成油 0W-40 1L': '壳牌先锋超凡喜力系列 1L',
-    '壳牌超凡喜力系列 1L': '壳牌超凡喜力系列 1L',
-    '壳牌超凡喜力系列 4L': '壳牌超凡喜力系列 4L',
-    '壳牌极净超凡喜力系列 1L': '壳牌极净超凡喜力系列 1L',
-    '壳牌极净超凡喜力系列 4L': '壳牌极净超凡喜力系列 4L',
+    '壳牌劲霸 k4': '壳牌劲霸柴油机油 k4',
+    '壳牌劲霸 k6': '壳牌劲霸柴油机油 k6',
+    '壳牌劲霸 k8': '壳牌劲霸柴油机油 k8',
+    '壳牌劲霸 k10': '壳牌劲霸柴油机油 k10',
+    '壳牌劲霸 k15': '壳牌劲霸柴油机油 k15',
     '其他': '其他'
 }
 
@@ -87,8 +72,8 @@ def solve_img():
 
 
 def generate_main():
-    main_dir = "/home/lichengzhi/mmdetection/data/VOCdevkit/shell/crto/2020.07.14/ImageSets/Main"
-    annotations_dir = "/home/lichengzhi/mmdetection/data/VOCdevkit/shell/crto/2020.07.14/Annotations"
+    main_dir = "/home/lichengzhi/mmdetection/data/VOCdevkit/shell/crto/2020.08.12/ImageSets/Main"
+    annotations_dir = "/home/lichengzhi/mmdetection/data/VOCdevkit/shell/crto/2020.08.12/Annotations"
     if not os.path.exists(main_dir):
         os.makedirs(main_dir)
     total_xml = os.listdir(annotations_dir)
@@ -118,7 +103,7 @@ def generate_main():
 
 def main():
     # solve_img()
-    # solve_xml()
+    solve_xml()
     generate_main()
 
 
